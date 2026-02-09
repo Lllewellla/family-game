@@ -87,6 +87,12 @@ const Baby = {
             return;
         }
         
+        // Check if user belongs to a family
+        if (!App.currentUser || !App.currentUser.family_id) {
+            App.showError('Вы должны быть членом семьи для добавления событий. Пожалуйста, обратитесь к администратору.');
+            return;
+        }
+        
         try {
             App.showLoading();
             
@@ -103,7 +109,8 @@ const Baby = {
             App.showSuccess('Событие добавлено!');
         } catch (error) {
             console.error('Failed to create event:', error);
-            App.showError('Не удалось добавить событие');
+            const errorMessage = error.message || 'Не удалось добавить событие';
+            App.showError(errorMessage);
         } finally {
             App.hideLoading();
         }
