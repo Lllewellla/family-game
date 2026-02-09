@@ -129,3 +129,77 @@ def get_user_stats(user: User, db: Session) -> Dict[str, Any]:
             for s in streaks
         ]
     }
+
+def update_family_xp(family, xp_amount: int, db: Session) -> Dict[str, Any]:
+    """
+    Update family XP and level.
+    
+    Returns:
+        Dictionary with level_up flag and new level
+    """
+    from ..models import Family
+    old_level = family.level
+    family.total_xp += xp_amount
+    new_level = calculate_level(family.total_xp)
+    
+    level_up = new_level > old_level
+    family.level = new_level
+    
+    db.commit()
+    
+    return {
+        "level_up": level_up,
+        "old_level": old_level,
+        "new_level": new_level,
+        "total_xp": family.total_xp,
+        "xp_for_next_level": calculate_xp_for_next_level(new_level, family.total_xp)
+    }
+
+
+def check_all_adults_completed_shared_habit(habit, completion_date: date, db: Session) -> bool:
+    """
+    Check if all adult family members have completed a shared habit on the given date.
+    
+    Args:
+        habit: Habit instance (must be shared)
+        completion_date: Date to check
+        db: Database session
+    
+    Returns:
+        True if all adults completed, False otherwise
+    """
+    from ..models import User, HabitLog, PrivacyType
+    
+    if habit.privacy != PrivacyType.SHARED:
+        return False
+    
+    # Get all adult members (all members are considered adults for now)
+    # In future, you might want to add an 'is_adult' field to User
+    family_members = db.query(User).filter(
+        User.family_id == habit.family_id
+    ).all()
+    
+    if not family_members:
+        return False
+    
+    # Check if all members have completed the habit today
+    for member in family_members:
+        log = db.query(HabitLog).filter(
+            HabitLog.habit_id == habit.id,
+            HabitLog.user_id == member.id,
+            HabitLog.date == completion_date
+        ).first()
+        
+        if not log:
+            return False
+    
+    return True
+
+
+def get_family_stats(family, db: Session) -> Dict[str, Any]:
+    """Get comprehensive stats for a family."""
+    return {
+        "level": family.level,
+        "total_xp": family.total_xp,
+        "xp_for_next_level": calculate_xp_for_next_level(family.level, family.total_xp)
+    }

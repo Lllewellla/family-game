@@ -80,6 +80,16 @@ const API = {
         return this.request('/api/users/family');
     },
     
+    async inviteUserToFamily(telegramId=null, username=null) {
+        const data = {}
+        if (telegramId) data.telegram_id = telegramId
+        if (username) data.username = username
+        return this.request('/api/users/family/invite', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        })
+    },
+    
     // Habits
     async getHabits() {
         return this.request('/api/habits');
@@ -157,6 +167,10 @@ const API = {
     // Gamification
     async getStats() {
         return this.request('/api/gamification/stats');
+    },
+    
+    async getFamilyStats() {
+        return this.request('/api/gamification/family-stats');
     },
     
     async getFamilyQuest() {

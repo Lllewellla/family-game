@@ -174,6 +174,24 @@ const App = {
             });
         }
         
+
+        
+        // Invite member modal
+        const inviteMemberForm = document.getElementById('invite-member-form');
+        const cancelInviteBtn = document.getElementById('cancel-invite-btn');
+        
+        if (cancelInviteBtn) {
+            cancelInviteBtn.addEventListener('click', () => {
+                Gamification.closeInviteModal();
+            });
+        }
+        
+        if (inviteMemberForm) {
+            inviteMemberForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await Gamification.inviteMember();
+            });
+        }
         if (addEventForm) {
             addEventForm.addEventListener('submit', async (e) => {
                 e.preventDefault();

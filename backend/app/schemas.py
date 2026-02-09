@@ -30,6 +30,15 @@ class UserResponse(UserBase):
         from_attributes = True
 
 
+class InviteUserRequest(BaseModel):
+    telegram_id: Optional[str] = None
+    username: Optional[str] = None
+
+
+class JoinFamilyRequest(BaseModel):
+    family_id: UUID
+
+
 # Habit Schemas
 class HabitBase(BaseModel):
     name: str
@@ -79,6 +88,8 @@ class HabitLogResponse(BaseModel):
     value: Optional[Dict[str, Any]] = None
     xp_earned: int
     created_at: datetime
+    family_xp_awarded: Optional[bool] = None
+    family_xp_amount: Optional[int] = None
 
     class Config:
         from_attributes = True
@@ -134,6 +145,13 @@ class FamilyQuestResponse(BaseModel):
 
 
 # Gamification Schemas
+
+class FamilyStatsResponse(BaseModel):
+    level: int
+    total_xp: int
+    xp_for_next_level: int
+
+
 class StatsResponse(BaseModel):
     level: int
     total_xp: int

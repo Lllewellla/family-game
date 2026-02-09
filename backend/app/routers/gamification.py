@@ -6,10 +6,10 @@ from datetime import date
 from uuid import UUID
 
 from ..database import get_db
-from ..models import User, FamilyQuest
-from ..schemas import FamilyQuestCreate, FamilyQuestResponse, StatsResponse, LeaderboardEntry
+from ..models import User, FamilyQuest, Family
+from ..schemas import FamilyQuestCreate, FamilyQuestResponse, StatsResponse, LeaderboardEntry, FamilyStatsResponse
 from ..routers.users import get_current_user
-from ..services.xp_service import get_user_stats
+from ..services.xp_service import get_user_stats, get_family_stats
 
 router = APIRouter(prefix="/api/gamification", tags=["gamification"])
 
@@ -120,3 +120,19 @@ async def get_leaderboard(
         )
         for member in family_members
     ]
+
+@router.get("/family-stats", response_model=FamilyStatsResponse)
+async def get_family_stats(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get family gamification stats."""
+    if not current_user.family_id:
+        raise HTTPException(status_code=400, detail="User must belong to a family")
+    
+    family = db.query(Family).filter(Family.id == current_user.family_id).first()
+    if not family:
+        raise HTTPException(status_code=404, detail="Family not found")
+    
+    stats = get_family_stats(family, db)
+    return FamilyStatsResponse(**stats)

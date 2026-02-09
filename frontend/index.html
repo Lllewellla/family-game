@@ -40,6 +40,26 @@
                 </div>
             </div>
 
+            <!-- Family Stats -->
+            <div id="family-stats" class="bg-gradient-to-r from-purple-400 to-pink-400 rounded-xl p-4 mb-4 shadow-sm text-white">
+                <h2 class="text-lg font-semibold mb-3">рџ‘ЁвЂЌрџ‘©вЂЌрџ‘§вЂЌрџ‘¦ РЎРµРјСЊСЏ</h2>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-sm opacity-90">РЈСЂРѕРІРµРЅСЊ</p>
+                        <p class="text-2xl font-bold" id="family-level">1</p>
+                    </div>
+                    <div>
+                        <p class="text-sm opacity-90">Р’СЃРµРіРѕ XP</p>
+                        <p class="text-xl font-semibold" id="family-total-xp">0</p>
+                    </div>
+                    <div>
+                        <p class="text-sm opacity-90">Р”Рѕ СЃР»РµРґСѓСЋС‰РµРіРѕ СѓСЂРѕРІРЅСЏ</p>
+                        <p class="text-lg font-semibold" id="family-xp-next">100 XP</p>
+                    </div>
+                </div>
+            </div>
+
+
             <!-- Family Quest Progress -->
             <div id="family-quest" class="bg-white rounded-xl p-4 mb-4 shadow-sm hidden">
                 <h2 class="text-lg font-semibold mb-2 text-gray-800" id="quest-name">Семейный квест</h2>
@@ -175,6 +195,31 @@
                     </button>
                     <button type="submit" class="flex-1 py-3 bg-gradient-to-r from-orange-400 to-pink-400 text-white rounded-lg font-semibold">
                         Сохранить
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    <!-- Invite Family Member Modal -->
+    <div id="invite-member-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-semibold mb-4">Р”РѕР±Р°РІРёС‚СЊ С‡Р»РµРЅР° СЃРµРјСЊРё</h3>
+            <form id="invite-member-form">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Username (Р±РµР· @)</label>
+                    <input type="text" id="invite-username" class="w-full p-3 border rounded-lg" placeholder="username">
+                </div>
+                <div class="mb-4">
+                    <p class="text-xs text-gray-500 mb-2">РёР»Рё</p>
+                    <label class="block text-sm font-medium mb-2">Telegram ID</label>
+                    <input type="text" id="invite-telegram-id" class="w-full p-3 border rounded-lg" placeholder="123456789">
+                </div>
+                <div class="flex space-x-3">
+                    <button type="button" id="cancel-invite-btn" class="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold">
+                        РћС‚РјРµРЅР°
+                    </button>
+                    <button type="submit" class="flex-1 py-3 bg-gradient-to-r from-orange-400 to-pink-400 text-white rounded-lg font-semibold">
+                        РџСЂРёРіР»Р°СЃРёС‚СЊ
                     </button>
                 </div>
             </form>

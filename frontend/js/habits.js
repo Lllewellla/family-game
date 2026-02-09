@@ -137,6 +137,36 @@ const Habits = {
                 Gamification.showXPGain(result.xp_earned);
             }
             
+            // Show family XP notification if awarded
+            if (result.family_xp_awarded && result.family_xp_amount) {
+                setTimeout(() => {
+                    Gamification.showXPGain(result.family_xp_amount, 'РЎРµРјСЊСЏ РїРѕР»СѓС‡РёР»Р°');
+                }, 500);
+                App.showSuccess(+ XP! РЎРµРјСЊСЏ РїРѕР»СѓС‡РёР»Р° + XP!);
+            } else {
+                App.showSuccess(+ XP!);
+            }
+            
+            // Reload habits and stats
+            await this.loadTodayHabits();
+            await Gamification.loadStats();
+            await Gamification.loadFamilyStats();
+        } catch (error) {
+            console.error('Failed to complete habit:', error);
+            App.showError('РќРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РјРµС‚РёС‚СЊ РїСЂРёРІС‹С‡РєСѓ');
+        } finally {
+            App.hideLoading();
+        }
+    }
+        try {
+            App.showLoading();
+            const result = await API.completeHabit(habitId, value);
+            
+            // Show XP gain animation
+            if (result.xp_earned) {
+                Gamification.showXPGain(result.xp_earned);
+            }
+            
             // Reload habits and stats
             await this.loadTodayHabits();
             await Gamification.loadStats();

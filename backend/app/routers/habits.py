@@ -6,9 +6,10 @@ from datetime import date, datetime, timedelta
 from uuid import UUID
 
 from ..database import get_db
-from ..models import User, Habit, HabitLog, HabitType, PrivacyType
+from ..models import User, Habit, HabitLog, HabitType, PrivacyType, Family
 from ..schemas import HabitCreate, HabitUpdate, HabitResponse, HabitLogCreate, HabitLogResponse
 from ..routers.users import get_current_user
+from ..services.xp_service import check_all_adults_completed_shared_habit, update_family_xp
 
 router = APIRouter(prefix="/api/habits", tags=["habits"])
 
@@ -191,7 +192,7 @@ async def complete_habit(
     )
     db.add(log)
     
-    # Update user XP (will be handled by XP service)
+    # Update user XP
     current_user.total_xp += habit.xp_reward
     
     # Recalculate level
@@ -200,7 +201,29 @@ async def complete_habit(
     if new_level > current_user.level:
         current_user.level = new_level
     
+    # If this is a shared habit, check if all adults completed it
+    # If yes, award XP to the family
+    family_xp_awarded = False
+    if habit.privacy == PrivacyType.SHARED:
+        # Commit user changes first so the new log is available
+        db.flush()
+        
+        # Check if all adults completed the habit today
+        if check_all_adults_completed_shared_habit(habit, today, db):
+            # Get family and award XP
+            family = db.query(Family).filter(Family.id == habit.family_id).first()
+            if family:
+                # Award XP equal to habit reward (or could be multiplied)
+                family_xp_result = update_family_xp(family, habit.xp_reward, db)
+                family_xp_awarded = True
+    
     db.commit()
     db.refresh(log)
     
-    return HabitLogResponse.model_validate(log)
+    # Create response with family XP info if awarded
+    response_data = HabitLogResponse.model_validate(log).model_dump()
+    if family_xp_awarded:
+        response_data["family_xp_awarded"] = True
+        response_data["family_xp_amount"] = habit.xp_reward
+    
+    return HabitLogResponse(**response_data)
