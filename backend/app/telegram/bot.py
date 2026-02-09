@@ -80,6 +80,25 @@ async def notify_family_quest_completed(family_id: str, quest_name: str, db: Ses
         logger.error(f"Failed to send quest notification: {e}")
 
 
+async def notify_deploy_complete():
+    """Send a message to the configured chat that deploy is complete and bot is ready."""
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+    chat_id = os.getenv("DEPLOY_NOTIFY_CHAT_ID")
+    if not bot_token or not chat_id or not chat_id.strip():
+        return
+    chat_id = chat_id.strip()
+    try:
+        from telegram import Bot
+        bot = Bot(token=bot_token)
+        await bot.send_message(
+            chat_id=chat_id,
+            text="✅ Деплой завершён. Бот готов к работе."
+        )
+        logger.info("Deploy notification sent to chat %s", chat_id)
+    except Exception as e:
+        logger.warning("Failed to send deploy notification: %s", e)
+
+
 async def setup_menu_button():
     """Set up menu button pointing to Mini App."""
     bot_token = os.getenv("TELEGRAM_BOT_TOKEN")

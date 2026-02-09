@@ -245,6 +245,18 @@ const App = {
                 await Baby.handleAddEvent();
             });
         }
+        const familyBabyViewAll = document.getElementById('family-baby-view-all');
+        if (familyBabyViewAll) {
+            familyBabyViewAll.addEventListener('click', () => this.switchTab('baby'));
+        }
+        const familyAddHabitBtn = document.getElementById('family-add-habit-btn');
+        if (familyAddHabitBtn) {
+            familyAddHabitBtn.addEventListener('click', () => typeof Settings !== 'undefined' && Settings.openHabitModal());
+        }
+        const personalAddHabitBtn = document.getElementById('personal-add-habit-btn');
+        if (personalAddHabitBtn) {
+            personalAddHabitBtn.addEventListener('click', () => typeof Settings !== 'undefined' && Settings.openHabitModal());
+        }
     },
     
     showLoading() {

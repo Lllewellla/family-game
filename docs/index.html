@@ -1329,7 +1329,10 @@
 
             <!-- Block 1: Shared Habits -->
             <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
-                <h2 class="text-lg font-semibold mb-3 text-gray-800">Общие привычки</h2>
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-lg font-semibold text-gray-800">Общие привычки</h2>
+                    <button type="button" id="family-add-habit-btn" class="text-sm px-3 py-1.5 rounded-lg bg-orange-500 text-white font-medium hover:bg-orange-600">+ Добавить привычку</button>
+                </div>
                 <div id="family-shared-habits" class="space-y-3">
 
 
@@ -1366,6 +1369,9 @@
                 <h2 class="text-lg font-semibold mb-3 text-gray-800">Новости сына</h2>
                 <div id="family-baby-news" class="space-y-3">
                     <!-- Baby news will be loaded here -->
+                </div>
+                <div class="mt-3 text-center">
+                    <button type="button" id="family-baby-view-all" class="text-blue-600 text-sm font-medium hover:underline">Смотреть все</button>
                 </div>
             </div>
 
@@ -1591,7 +1597,10 @@
 
 
             <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
-                <h2 class="text-lg font-semibold mb-3 text-gray-800">Мои привычки</h2>
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-lg font-semibold text-gray-800">Мои привычки</h2>
+                    <button type="button" id="personal-add-habit-btn" class="text-sm px-3 py-1.5 rounded-lg bg-orange-500 text-white font-medium hover:bg-orange-600">+ Добавить привычку</button>
+                </div>
                 <div id="personal-habits-list" class="space-y-3">
 
 

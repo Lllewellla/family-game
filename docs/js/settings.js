@@ -187,11 +187,9 @@ const Settings = {
             
             this.closeHabitModal();
             await this.loadAllHabits();
-            
-            // Reload today's habits if on dashboard
-            if (App.currentTab === 'dashboard') {
-                await Habits.loadTodayHabits();
-            }
+            if (App.currentTab === 'dashboard') await Habits.loadTodayHabits();
+            if (App.currentTab === 'family' && typeof Family !== 'undefined') await Family.loadFamilyPage();
+            if (App.currentTab === 'personal' && typeof Personal !== 'undefined') await Personal.loadPersonalHabits();
         } catch (error) {
             console.error('Failed to save habit:', error);
             App.showError(error.message || 'Не удалось сохранить привычку');
@@ -223,11 +221,9 @@ const Settings = {
             await API.deleteHabit(habitId);
             App.showSuccess('Привычка удалена!');
             await this.loadAllHabits();
-            
-            // Reload today's habits if on dashboard
-            if (App.currentTab === 'dashboard') {
-                await Habits.loadTodayHabits();
-            }
+            if (App.currentTab === 'dashboard') await Habits.loadTodayHabits();
+            if (App.currentTab === 'family' && typeof Family !== 'undefined') await Family.loadFamilyPage();
+            if (App.currentTab === 'personal' && typeof Personal !== 'undefined') await Personal.loadPersonalHabits();
         } catch (error) {
             console.error('Failed to delete habit:', error);
             App.showError(error.message || 'Не удалось удалить привычку');

@@ -63,12 +63,15 @@ const Personal = {
     
     renderPersonalHabit(habit, logs) {
         const progressHtml = Habits.renderHabitProgress(habit, logs);
-        
+        const habitId = typeof habit.id === 'string' ? habit.id : habit.id;
         return `
-            <div class="habit-item bg-gray-50 rounded-xl p-4" data-habit-id="${habit.id}">
+            <div class="habit-item bg-gray-50 rounded-xl p-4" data-habit-id="${habitId}">
                 <div class="flex items-center justify-between mb-2">
                     <h3 class="font-semibold text-gray-800">${Habits.escapeHtml(habit.name)}</h3>
-                    <span class="text-sm text-gray-600">+${habit.xp_reward} XP</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-gray-600">+${habit.xp_reward} XP</span>
+                        <button type="button" class="p-1 text-gray-500 hover:text-blue-600 rounded" onclick="Settings.editHabit('${habitId}')" title="Редактировать">&#9998;</button>
+                    </div>
                 </div>
                 ${progressHtml}
                 <div class="habit-control mt-3" data-habit-type="${habit.type}">

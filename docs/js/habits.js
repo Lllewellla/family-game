@@ -58,6 +58,27 @@ const Habits = {
             </div>
         `;
     },
+
+    /** Card with progress block (for ЛИЧНОЕ and СЕМЬЯ public habits). */
+    renderHabitCardWithProgress(habit, logs) {
+        const progressHtml = this.renderHabitProgress(habit, logs);
+        const habitId = typeof habit.id === 'string' ? habit.id : habit.id;
+        return `
+            <div class="habit-item bg-gray-50 rounded-xl p-4" data-habit-id="${habitId}">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="font-semibold text-gray-800">${this.escapeHtml(habit.name)}</h3>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-gray-600">+${habit.xp_reward} XP</span>
+                        <button type="button" class="p-1 text-gray-500 hover:text-blue-600 rounded" onclick="Settings.editHabit('${habitId}')" title="Редактировать">&#9998;</button>
+                    </div>
+                </div>
+                ${progressHtml}
+                <div class="habit-control mt-3" data-habit-type="${habit.type}">
+                    ${this.renderHabitControl(habit)}
+                </div>
+            </div>
+        `;
+    },
     
     renderHabitControl(habit) {
         switch (habit.type) {
@@ -201,33 +222,28 @@ const Habits = {
     },
     
     renderBooleanProgress(logs) {
-        // Get last 7 days: 3 past, today, 3 future
+        // 6 circles: D-3, D-2, D-1, D0, D+1, D+2 (spec)
         const today = new Date();
         const days = [];
-        for (let i = -3; i <= 3; i++) {
+        for (let i = -3; i <= 2; i++) {
             const date = new Date(today);
             date.setDate(today.getDate() + i);
             days.push(date.toISOString().split('T')[0]);
         }
-        
         const logsByDate = {};
         logs.forEach(log => {
             logsByDate[log.date] = log;
         });
-        
         const circles = days.map((date, index) => {
             const isToday = index === 3;
             const isFuture = index > 3;
             const log = logsByDate[date];
             const completed = !!log;
-            
             if (isFuture) {
                 return `<div class="w-8 h-8 rounded-full border-2 border-gray-200 bg-white"></div>`;
             }
-            
             return `<div class="w-8 h-8 rounded-full ${completed ? 'bg-green-500' : 'bg-gray-200'} ${isToday ? 'ring-2 ring-orange-500' : ''}" title="${date}"></div>`;
         });
-        
         return `<div class="flex items-center space-x-2">${circles.join('')}</div>`;
     },
     
@@ -235,19 +251,25 @@ const Habits = {
         const today = new Date().toISOString().split('T')[0];
         const todayLog = logs.find(log => log.date === today);
         const currentValue = todayLog && todayLog.value ? (todayLog.value.value || todayLog.value.quantity || 0) : 0;
-        
-        const targetValue = habit.target_value ? (habit.target_value.target || habit.target_value) : null;
-        
-        if (targetValue === null) {
+        const tv = habit.target_value;
+        const targetValue = tv && (typeof tv === 'object' && (tv.target !== undefined || tv.target_value !== undefined))
+            ? (tv.target ?? tv.target_value)
+            : (typeof tv === 'number' ? tv : null);
+        const mode = (tv && tv.mode) || 'more_is_better'; // more_is_better (e.g. steps) | less_is_better (e.g. calories)
+        if (targetValue === null || targetValue === undefined) {
             return `<div class="text-2xl font-bold text-orange-600">${currentValue}</div>`;
         }
-        
-        const isExceeded = currentValue > targetValue;
-        const isGood = currentValue >= targetValue * 0.9; // 90% of target
-        
+        const isOver = currentValue > targetValue;
+        const isAtOrNear = currentValue >= targetValue * 0.9;
+        let colorClass = 'text-orange-600';
+        if (mode === 'more_is_better') {
+            colorClass = isOver ? 'text-green-600' : (isAtOrNear ? 'text-green-600' : 'text-orange-600');
+        } else {
+            colorClass = isOver ? 'text-red-600' : (isAtOrNear ? 'text-green-600' : 'text-orange-600');
+        }
         return `
             <div class="flex items-baseline space-x-2">
-                <span class="text-2xl font-bold ${isExceeded ? 'text-red-600' : isGood ? 'text-green-600' : 'text-orange-600'}">${currentValue}</span>
+                <span class="text-2xl font-bold ${colorClass}">${currentValue}</span>
                 <span class="text-sm text-gray-500">/ ${targetValue}</span>
             </div>
         `;
@@ -257,26 +279,36 @@ const Habits = {
         const today = new Date();
         const weekStart = new Date(today);
         weekStart.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
-        
         const weekLogs = logs.filter(log => {
             const logDate = new Date(log.date);
             return logDate >= weekStart && logDate <= today;
         });
-        
         const completedCount = weekLogs.length;
         const targetValue = habit.target_value ? (habit.target_value.target || habit.target_value) : 7;
         const percentage = Math.min((completedCount / targetValue) * 100, 100);
-        
+        const isOverfulfilled = completedCount > targetValue;
+        const labelClass = isOverfulfilled ? 'text-amber-600' : (completedCount >= targetValue ? 'text-green-600' : 'text-gray-600');
         return `
             <div class="space-y-1">
                 <div class="flex justify-between text-sm">
                     <span class="text-gray-600">Прогресс</span>
-                    <span class="font-semibold ${completedCount >= targetValue ? 'text-green-600' : 'text-gray-600'}">${completedCount}/${targetValue}</span>
+                    <span class="font-semibold ${labelClass}">${completedCount}/${targetValue}</span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div class="bg-gradient-default h-2 rounded-full transition-all" style="width: ${percentage}%"></div>
+                    <div class="${isOverfulfilled ? 'bg-amber-500' : 'bg-gradient-default'} h-2 rounded-full transition-all" style="width: ${percentage}%"></div>
                 </div>
             </div>
         `;
+    },
+
+    // Named reusable components (spec)
+    HabitDots(logs) {
+        return this.renderBooleanProgress(logs);
+    },
+    HabitWeeklyProgressBar(habit, logs) {
+        return this.renderWeeklyProgress(habit, logs);
+    },
+    HabitNumericValue(habit, logs) {
+        return this.renderQuantityProgress(habit, logs);
     }
 };

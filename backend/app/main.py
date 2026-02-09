@@ -82,6 +82,13 @@ async def startup_event():
     except Exception as e:
         logger.error(f"Failed to start scheduler: {e}")
 
+    # Notify configured chat that deploy is complete
+    try:
+        from .telegram.bot import notify_deploy_complete
+        await notify_deploy_complete()
+    except Exception as e:
+        logger.warning("Deploy notification skipped: %s", e)
+
 
 @app.on_event("shutdown")
 async def shutdown_event():
