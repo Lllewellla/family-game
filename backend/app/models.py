@@ -123,7 +123,7 @@ class BabyEvent(Base):
     family_id = Column(UUID(as_uuid=True), ForeignKey("families.id"), nullable=False)
     event_type = Column(SQLEnum(BabyEventType), nullable=False)
     content = Column(String, nullable=False)
-    metadata = Column(JSONB, nullable=True)  # Additional data (product, skill details)
+    event_metadata = Column("metadata", JSONB, nullable=True)  # Additional data (product, skill details)
     created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

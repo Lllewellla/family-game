@@ -53,10 +53,15 @@ async def create_baby_event(
     if not current_user.family_id:
         raise HTTPException(status_code=400, detail="User must belong to a family")
     
+    event_data_dict = event_data.model_dump()
+    # Map metadata to event_metadata for SQLAlchemy model
+    if "metadata" in event_data_dict:
+        event_data_dict["event_metadata"] = event_data_dict.pop("metadata")
+    
     event = BabyEvent(
         family_id=current_user.family_id,
         created_by=current_user.id,
-        **event_data.model_dump()
+        **event_data_dict
     )
     db.add(event)
     db.commit()
@@ -82,6 +87,10 @@ async def update_baby_event(
         raise HTTPException(status_code=403, detail="Access denied")
     
     update_data = event_data.model_dump(exclude_unset=True)
+    # Map metadata to event_metadata for SQLAlchemy model
+    if "metadata" in update_data:
+        update_data["event_metadata"] = update_data.pop("metadata")
+    
     for field, value in update_data.items():
         setattr(event, field, value)
     
@@ -144,7 +153,7 @@ async def get_daily_summary(
     for event in events:
         events_by_type[event.event_type.value].append({
             "content": event.content,
-            "metadata": event.metadata,
+            "metadata": event.event_metadata,
             "time": event.created_at.isoformat()
         })
     
