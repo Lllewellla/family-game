@@ -84,7 +84,16 @@ const App = {
             
         } catch (error) {
             console.error('Failed to load user data:', error);
-            this.showError('Не удалось загрузить данные. Проверьте подключение к интернету.');
+            const errorMessage = error.message || 'Не удалось загрузить данные';
+            
+            // Check if BACKEND_URL is not configured
+            if (window.BACKEND_URL && window.BACKEND_URL.includes('your-app.railway.app')) {
+                this.showError('Ошибка: BACKEND_URL не настроен. Пожалуйста, обновите config.js с реальным URL вашего Railway бэкенда.');
+            } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
+                this.showError('Не удалось подключиться к серверу. Проверьте BACKEND_URL в config.js и убедитесь, что бэкенд запущен.');
+            } else {
+                this.showError(`Ошибка: ${errorMessage}`);
+            }
         } finally {
             this.hideLoading();
         }
