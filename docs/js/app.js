@@ -47,7 +47,6 @@ const App = {
         const logData = {location:'app.js:37',message:'switchTab called',data:{tabName,hasFamily:typeof Family!=='undefined',hasPersonal:typeof Personal!=='undefined',hasBaby:typeof Baby!=='undefined'},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
         console.log('[DEBUG]', logData);
         App.addDebugLog('INFO', `switchTab: ${tabName}`, {hasFamily: typeof Family !== 'undefined', hasPersonal: typeof Personal !== 'undefined', hasBaby: typeof Baby !== 'undefined'});
-        fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData)}).catch(()=>{});
         // #endregion
         
         // Update buttons
@@ -74,14 +73,12 @@ const App = {
             // #region agent log
             const logData1 = {location:'app.js:51',message:'Loading family tab',data:{familyDefined:typeof Family!=='undefined'},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
             console.log('[DEBUG]', logData1);
-            fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData1)}).catch(()=>{});
             // #endregion
             if (typeof Family !== 'undefined') {
                 // #region agent log
                 const logData2 = {location:'app.js:53',message:'Calling Family.loadFamilyPage',data:{},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
                 console.log('[DEBUG]', logData2);
                 App.addDebugLog('INFO', 'Calling Family.loadFamilyPage');
-                fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData2)}).catch(()=>{});
                 // #endregion
                 Family.loadFamilyPage();
             } else {
@@ -89,21 +86,18 @@ const App = {
                 const logData3 = {location:'app.js:55',message:'Family module not defined',data:{},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
                 console.error('[DEBUG ERROR]', logData3);
                 App.addDebugLog('ERROR', 'Family module not defined!');
-                fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData3)}).catch(()=>{});
                 // #endregion
             }
         } else if (tabName === 'personal') {
             // #region agent log
             const logData4 = {location:'app.js:57',message:'Loading personal tab',data:{personalDefined:typeof Personal!=='undefined'},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
             console.log('[DEBUG]', logData4);
-            fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData4)}).catch(()=>{});
             // #endregion
             if (typeof Personal !== 'undefined') {
                 // #region agent log
                 const logData5 = {location:'app.js:59',message:'Calling Personal.loadPersonalHabits',data:{},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
                 console.log('[DEBUG]', logData5);
                 App.addDebugLog('INFO', 'Calling Personal.loadPersonalHabits');
-                fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData5)}).catch(()=>{});
                 // #endregion
                 Personal.loadPersonalHabits();
             } else {
@@ -111,7 +105,6 @@ const App = {
                 const logData6 = {location:'app.js:61',message:'Personal module not defined',data:{},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
                 console.error('[DEBUG ERROR]', logData6);
                 App.addDebugLog('ERROR', 'Personal module not defined!');
-                fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData6)}).catch(()=>{});
                 // #endregion
             }
         } else if (tabName === 'baby') {
@@ -121,7 +114,6 @@ const App = {
     
     async loadUserData() {
         // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:61',message:'loadUserData entry',data:{hasTelegram:!!window.Telegram?.WebApp,hasInitData:!!window.Telegram?.WebApp?.initData,initDataLength:window.Telegram?.WebApp?.initData?.length||0},timestamp:Date.now(),runId:'run1',hypothesisId:'A'})}).catch(()=>{});
         // #endregion
         
         try {
@@ -132,12 +124,10 @@ const App = {
             const initData = window.Telegram?.WebApp?.initData || '';
             
             // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:68',message:'Telegram check',data:{hasTelegramWebApp,initDataLength:initData.length,initDataEmpty:!initData},timestamp:Date.now(),runId:'run1',hypothesisId:'A'})}).catch(()=>{});
             // #endregion
             
             if (!hasTelegramWebApp || !initData) {
                 // #region agent log
-                fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:72',message:'Missing Telegram WebApp',data:{hasTelegramWebApp,hasInitData:!!initData},timestamp:Date.now(),runId:'run1',hypothesisId:'A'})}).catch(()=>{});
                 // #endregion
                 
                 const userNameEl = document.getElementById('user-name');
@@ -164,14 +154,12 @@ const App = {
             
             // Verify auth
             // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:95',message:'Before verifyAuth',data:{initDataLength:initData.length},timestamp:Date.now(),runId:'run1',hypothesisId:'B'})}).catch(()=>{});
             // #endregion
             
             const authResponse = await API.verifyAuth(initData);
             this.currentUser = authResponse.user;
             
             // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:100',message:'After verifyAuth',data:{hasUser:!!this.currentUser,userId:this.currentUser?.id},timestamp:Date.now(),runId:'run1',hypothesisId:'B'})}).catch(()=>{});
             // #endregion
             
             // Update UI
@@ -185,12 +173,10 @@ const App = {
             await Gamification.loadStats();
             
             // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:112',message:'loadUserData success',data:{},timestamp:Date.now(),runId:'run1',hypothesisId:'B'})}).catch(()=>{});
             // #endregion
             
         } catch (error) {
             // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app.js:116',message:'loadUserData error',data:{errorMessage:error.message,errorStack:error.stack},timestamp:Date.now(),runId:'run1',hypothesisId:'C'})}).catch(()=>{});
             // #endregion
             
             console.error('Failed to load user data:', error);

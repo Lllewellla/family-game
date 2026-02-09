@@ -4,7 +4,6 @@ const Family = {
         // #region agent log
         const logData = {location:'family.js:3',message:'loadFamilyPage entry',data:{},timestamp:Date.now(),runId:'run1',hypothesisId:'B'};
         console.log('[DEBUG]', logData);
-        fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData)}).catch(()=>{});
         // #endregion
         await Promise.all([
             this.loadFamilySharedHabits(),
@@ -12,7 +11,6 @@ const Family = {
             this.loadFamilyPublicHabits()
         ]);
         // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'family.js:9',message:'loadFamilyPage completed',data:{},timestamp:Date.now(),runId:'run1',hypothesisId:'B'})}).catch(()=>{});
         // #endregion
     },
     
@@ -21,7 +19,6 @@ const Family = {
         const logData1 = {location:'family.js:12',message:'loadFamilySharedHabits entry',data:{},timestamp:Date.now(),runId:'run1',hypothesisId:'B'};
         console.log('[DEBUG]', logData1);
         App.addDebugLog('INFO', 'loadFamilySharedHabits: starting');
-        fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData1)}).catch(()=>{});
         // #endregion
         try {
             const habits = await API.getSharedHabits();
@@ -29,14 +26,12 @@ const Family = {
             const logData2 = {location:'family.js:15',message:'getSharedHabits response',data:{habitsCount:habits?.length||0,habits:habits},timestamp:Date.now(),runId:'run1',hypothesisId:'B'};
             console.log('[DEBUG]', logData2);
             App.addDebugLog('INFO', `getSharedHabits: received ${habits?.length || 0} habits`);
-            fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData2)}).catch(()=>{});
             // #endregion
             const members = await API.getFamilyMembers();
             // #region agent log
             const logData3 = {location:'family.js:17',message:'getFamilyMembers response',data:{membersCount:members?.length||0},timestamp:Date.now(),runId:'run1',hypothesisId:'B'};
             console.log('[DEBUG]', logData3);
             App.addDebugLog('INFO', `getFamilyMembers: received ${members?.length || 0} members`);
-            fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData3)}).catch(()=>{});
             // #endregion
             this.renderFamilySharedHabits(habits, members);
         } catch (error) {
@@ -44,7 +39,6 @@ const Family = {
             const logData4 = {location:'family.js:19',message:'loadFamilySharedHabits error',data:{error:error?.message,errorStack:error?.stack},timestamp:Date.now(),runId:'run1',hypothesisId:'B'};
             console.error('[DEBUG ERROR]', logData4);
             App.addDebugLog('ERROR', `loadFamilySharedHabits failed: ${error?.message}`, {error: error?.message});
-            fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData4)}).catch(()=>{});
             // #endregion
             console.error('Failed to load shared habits:', error);
             App.showError('Не удалось загрузить общие привычки');
@@ -95,7 +89,6 @@ const Family = {
         // #region agent log
         const logData1 = {location:'family.js:67',message:'renderFamilySharedHabits entry',data:{habitsCount:habits?.length||0,membersCount:members?.length||0},timestamp:Date.now(),runId:'run1',hypothesisId:'C'};
         console.log('[DEBUG]', logData1);
-        fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData1)}).catch(()=>{});
         // #endregion
         const container = document.getElementById('family-shared-habits');
         // #region agent log
@@ -106,7 +99,6 @@ const Family = {
         } else {
             App.addDebugLog('INFO', 'Container family-shared-habits found');
         }
-        fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData2)}).catch(()=>{});
         // #endregion
         if (!container) return;
         
