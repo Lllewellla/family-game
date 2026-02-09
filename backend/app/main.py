@@ -1,6 +1,7 @@
 """FastAPI application entry point."""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 import os
 import logging
 
@@ -20,6 +21,14 @@ try:
     logger.info("Database tables created/verified")
 except Exception as e:
     logger.error(f"Error creating database tables: {e}")
+
+# One-time migration: add target_value to habits if missing (existing DBs on Railway)
+try:
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE habits ADD COLUMN IF NOT EXISTS target_value JSONB"))
+    logger.info("Habits table migration (target_value) applied/verified")
+except Exception as e:
+    logger.warning(f"Migration target_value skipped or failed (non-fatal): {e}")
 
 # Create FastAPI app
 app = FastAPI(
