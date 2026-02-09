@@ -3,7 +3,15 @@ const API = {
     baseURL: window.BACKEND_URL || 'https://your-app.railway.app',
     
     async request(endpoint, options = {}) {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:5',message:'API request entry',data:{endpoint,hasTelegram:!!window.Telegram?.WebApp,hasInitData:!!window.Telegram?.WebApp?.initData},timestamp:Date.now(),runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
+        
         const initData = window.Telegram?.WebApp?.initData || '';
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:10',message:'Before fetch',data:{endpoint,initDataLength:initData.length,initDataEmpty:!initData},timestamp:Date.now(),runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
         
         const headers = {
             'Content-Type': 'application/json',
@@ -19,6 +27,10 @@ const API = {
                 headers
             });
             
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:25',message:'After fetch',data:{endpoint,status:response.status,statusText:response.statusText,ok:response.ok},timestamp:Date.now(),runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+            // #endregion
+            
             if (!response.ok) {
                 let errorData;
                 try {
@@ -27,11 +39,26 @@ const API = {
                     errorData = { detail: `HTTP ${response.status}: ${response.statusText}` };
                 }
                 const errorMessage = errorData.detail || errorData.message || `HTTP ${response.status}`;
+                
+                // #region agent log
+                fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:35',message:'API error',data:{endpoint,status:response.status,errorMessage,errorData},timestamp:Date.now(),runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+                // #endregion
+                
                 throw new Error(errorMessage);
             }
             
-            return await response.json();
+            const result = await response.json();
+            
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:42',message:'API request success',data:{endpoint,hasResult:!!result},timestamp:Date.now(),runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+            // #endregion
+            
+            return result;
         } catch (error) {
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:47',message:'API request catch',data:{endpoint,errorMessage:error.message,errorName:error.name},timestamp:Date.now(),runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+            
             console.error('API request failed:', error);
             throw error;
         }
