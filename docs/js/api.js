@@ -20,8 +20,14 @@ const API = {
             });
             
             if (!response.ok) {
-                const error = await response.json().catch(() => ({ detail: 'Request failed' }));
-                throw new Error(error.detail || `HTTP ${response.status}`);
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch {
+                    errorData = { detail: `HTTP ${response.status}: ${response.statusText}` };
+                }
+                const errorMessage = errorData.detail || errorData.message || `HTTP ${response.status}`;
+                throw new Error(errorMessage);
             }
             
             return await response.json();

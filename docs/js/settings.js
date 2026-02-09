@@ -36,13 +36,21 @@ const Settings = {
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div class="flex-1">
                     <h4 class="font-semibold text-gray-800">${this.escapeHtml(habit.name)}</h4>
-                    <p class="text-xs text-gray-600">${this.getHabitTypeLabel(habit.type)} • ${this.getPrivacyLabel(habit.privacy)}</p>
+                    <p class="text-xs text-gray-600">${this.getHabitTypeLabel(habit.type)} • ${this.getPrivacyLabel(habit.privacy)} • +${habit.xp_reward} XP</p>
                 </div>
-                <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" class="sr-only peer" ${habit.is_active ? 'checked' : ''} 
-                           onchange="Settings.toggleHabit('${habit.id}', this.checked)">
-                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
-                </label>
+                <div class="flex items-center space-x-2">
+                    <button onclick="Settings.editHabit('${habit.id}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Редактировать">
+                        ✏️
+                    </button>
+                    <button onclick="Settings.deleteHabit('${habit.id}')" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Удалить">
+                        🗑️
+                    </button>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" class="sr-only peer" ${habit.is_active ? 'checked' : ''} 
+                               onchange="Settings.toggleHabit('${habit.id}', this.checked)">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                    </label>
+                </div>
             </div>
         `).join('');
     },
@@ -50,9 +58,126 @@ const Settings = {
     async toggleHabit(habitId, isActive) {
         try {
             await API.updateHabit(habitId, { is_active: isActive });
+            App.showSuccess('Статус привычки обновлен');
         } catch (error) {
             console.error('Failed to toggle habit:', error);
-            App.showError('Не удалось изменить статус привычки');
+            App.showError(error.message || 'Не удалось изменить статус привычки');
+        }
+    },
+    
+    openHabitModal(habit = null) {
+        const modal = document.getElementById('habit-modal');
+        const title = document.getElementById('habit-modal-title');
+        const form = document.getElementById('habit-form');
+        const habitId = document.getElementById('habit-id');
+        const habitName = document.getElementById('habit-name');
+        const habitType = document.getElementById('habit-type');
+        const habitSchedule = document.getElementById('habit-schedule');
+        const habitPrivacy = document.getElementById('habit-privacy');
+        const habitXp = document.getElementById('habit-xp');
+        
+        if (habit) {
+            // Edit mode
+            title.textContent = 'Редактировать привычку';
+            habitId.value = habit.id;
+            habitName.value = habit.name;
+            habitType.value = habit.type;
+            habitSchedule.value = habit.schedule_type;
+            habitPrivacy.value = habit.privacy;
+            habitXp.value = habit.xp_reward;
+        } else {
+            // Create mode
+            title.textContent = 'Добавить привычку';
+            form.reset();
+            habitId.value = '';
+            habitXp.value = '10';
+        }
+        
+        modal.classList.remove('hidden');
+    },
+    
+    closeHabitModal() {
+        const modal = document.getElementById('habit-modal');
+        modal.classList.add('hidden');
+        document.getElementById('habit-form').reset();
+    },
+    
+    async saveHabit() {
+        const habitId = document.getElementById('habit-id').value;
+        const habitData = {
+            name: document.getElementById('habit-name').value.trim(),
+            type: document.getElementById('habit-type').value,
+            schedule_type: document.getElementById('habit-schedule').value,
+            privacy: document.getElementById('habit-privacy').value,
+            xp_reward: parseInt(document.getElementById('habit-xp').value)
+        };
+        
+        if (!habitData.name) {
+            App.showError('Пожалуйста, введите название привычки');
+            return;
+        }
+        
+        try {
+            App.showLoading();
+            
+            if (habitId) {
+                // Update existing habit
+                await API.updateHabit(habitId, habitData);
+                App.showSuccess('Привычка обновлена!');
+            } else {
+                // Create new habit
+                await API.createHabit(habitData);
+                App.showSuccess('Привычка создана!');
+            }
+            
+            this.closeHabitModal();
+            await this.loadAllHabits();
+            
+            // Reload today's habits if on dashboard
+            if (App.currentTab === 'dashboard') {
+                await Habits.loadTodayHabits();
+            }
+        } catch (error) {
+            console.error('Failed to save habit:', error);
+            App.showError(error.message || 'Не удалось сохранить привычку');
+        } finally {
+            App.hideLoading();
+        }
+    },
+    
+    async editHabit(habitId) {
+        try {
+            const habits = await API.getHabits();
+            const habit = habits.find(h => h.id === habitId);
+            if (habit) {
+                this.openHabitModal(habit);
+            }
+        } catch (error) {
+            console.error('Failed to load habit:', error);
+            App.showError('Не удалось загрузить привычку');
+        }
+    },
+    
+    async deleteHabit(habitId) {
+        if (!confirm('Вы уверены, что хотите удалить эту привычку?')) {
+            return;
+        }
+        
+        try {
+            App.showLoading();
+            await API.deleteHabit(habitId);
+            App.showSuccess('Привычка удалена!');
+            await this.loadAllHabits();
+            
+            // Reload today's habits if on dashboard
+            if (App.currentTab === 'dashboard') {
+                await Habits.loadTodayHabits();
+            }
+        } catch (error) {
+            console.error('Failed to delete habit:', error);
+            App.showError(error.message || 'Не удалось удалить привычку');
+        } finally {
+            App.hideLoading();
         }
     },
     
@@ -102,10 +227,42 @@ const Settings = {
     }
 };
 
-// Setup export button
+// Setup event listeners
 document.addEventListener('DOMContentLoaded', () => {
+    // Export button
     const exportBtn = document.getElementById('export-btn');
     if (exportBtn) {
         exportBtn.addEventListener('click', () => Settings.exportDiary());
+    }
+    
+    // Add habit button
+    const addHabitBtn = document.getElementById('add-habit-btn');
+    if (addHabitBtn) {
+        addHabitBtn.addEventListener('click', () => Settings.openHabitModal());
+    }
+    
+    // Habit modal
+    const habitModal = document.getElementById('habit-modal');
+    const cancelHabitBtn = document.getElementById('cancel-habit-btn');
+    const habitForm = document.getElementById('habit-form');
+    
+    if (cancelHabitBtn) {
+        cancelHabitBtn.addEventListener('click', () => Settings.closeHabitModal());
+    }
+    
+    if (habitForm) {
+        habitForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await Settings.saveHabit();
+        });
+    }
+    
+    // Close modal on background click
+    if (habitModal) {
+        habitModal.addEventListener('click', (e) => {
+            if (e.target === habitModal) {
+                Settings.closeHabitModal();
+            }
+        });
     }
 });
