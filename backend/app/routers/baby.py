@@ -13,6 +13,19 @@ from ..routers.users import get_current_user
 router = APIRouter(prefix="/api/baby", tags=["baby"])
 
 
+def _event_to_response(event: BabyEvent) -> BabyEventResponse:
+    """Convert BabyEvent model to BabyEventResponse schema."""
+    return BabyEventResponse(
+        id=event.id,
+        family_id=event.family_id,
+        event_type=event.event_type,
+        content=event.content,
+        metadata=event.event_metadata,
+        created_by=event.created_by,
+        created_at=event.created_at
+    )
+
+
 @router.get("/events", response_model=List[BabyEventResponse])
 async def get_baby_events(
     start_date: Optional[date] = Query(None),
@@ -40,7 +53,7 @@ async def get_baby_events(
     
     events = query.order_by(BabyEvent.created_at.desc()).offset(offset).limit(limit).all()
     
-    return [BabyEventResponse.model_validate(event) for event in events]
+    return [_event_to_response(event) for event in events]
 
 
 @router.post("/events", response_model=BabyEventResponse)
@@ -67,7 +80,7 @@ async def create_baby_event(
     db.commit()
     db.refresh(event)
     
-    return BabyEventResponse.model_validate(event)
+    return _event_to_response(event)
 
 
 @router.put("/events/{event_id}", response_model=BabyEventResponse)
@@ -97,7 +110,7 @@ async def update_baby_event(
     db.commit()
     db.refresh(event)
     
-    return BabyEventResponse.model_validate(event)
+    return _event_to_response(event)
 
 
 @router.delete("/events/{event_id}")
@@ -167,6 +180,6 @@ async def get_daily_summary(
     
     return {
         "summary": summary,
-        "events": [BabyEventResponse.model_validate(e) for e in events],
+        "events": [_event_to_response(e) for e in events],
         "date": event_date.isoformat()
     }
