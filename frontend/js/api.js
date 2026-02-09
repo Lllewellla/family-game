@@ -36,10 +36,9 @@ const API = {
                     errorData = { detail: `HTTP ${response.status}: ${response.statusText}` };
                 }
                 const errorMessage = errorData.detail || errorData.message || `HTTP ${response.status}`;
-                
-                // #region agent log
-                // #endregion
-                
+                if (typeof App !== 'undefined' && App.addDebugLog) {
+                    App.addDebugLog('ERROR', `API ${endpoint}: ${response.status}`, { status: response.status, detail: errorMessage });
+                }
                 throw new Error(errorMessage);
             }
             
@@ -50,9 +49,9 @@ const API = {
             
             return result;
         } catch (error) {
-            // #region agent log
-            // #endregion
-            
+            if (typeof App !== 'undefined' && App.addDebugLog) {
+                App.addDebugLog('ERROR', `API ${endpoint} failed`, { message: error?.message, name: error?.name });
+            }
             console.error('API request failed:', error);
             throw error;
         }

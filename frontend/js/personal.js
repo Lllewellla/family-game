@@ -13,10 +13,7 @@ const Personal = {
             // #endregion
             this.renderPersonalHabits(habits);
         } catch (error) {
-            // #region agent log
-            const logData3 = {location:'personal.js:9',message:'loadPersonalHabits error',data:{error:error?.message,errorStack:error?.stack},timestamp:Date.now(),runId:'run1',hypothesisId:'D'};
-            console.error('[DEBUG ERROR]', logData3);
-            // #endregion
+            if (App.addDebugLog) App.addDebugLog('ERROR', 'loadPersonalHabits failed', { message: error?.message });
             console.error('Failed to load personal habits:', error);
             App.showError('Не удалось загрузить привычки');
         }

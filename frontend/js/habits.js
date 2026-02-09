@@ -11,6 +11,7 @@ const Habits = {
             }
             this.renderHabits(habits);
         } catch (error) {
+            if (App.addDebugLog) App.addDebugLog('ERROR', 'loadTodayHabits failed', { message: error?.message });
             console.error('Failed to load habits:', error);
             App.showError('Не удалось загрузить привычки');
         }
