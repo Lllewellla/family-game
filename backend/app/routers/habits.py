@@ -134,6 +134,19 @@ async def update_habit(
     return HabitResponse.model_validate(habit)
 
 
+@router.delete("/reset-all")
+async def reset_all_habits(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete all habits in the current user's family. Use to start fresh if habits are stale (e.g. 404 on delete)."""
+    if not current_user.family_id:
+        raise HTTPException(status_code=400, detail="No family")
+    deleted = db.query(Habit).filter(Habit.family_id == current_user.family_id).delete()
+    db.commit()
+    return {"message": f"Deleted {deleted} habits", "deleted_count": deleted}
+
+
 @router.delete("/{habit_id}")
 async def delete_habit(
     habit_id: UUID,

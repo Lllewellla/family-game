@@ -84,7 +84,7 @@ const Habits = {
         switch (habit.type) {
             case 'boolean':
                 return `
-                    <button class="complete-btn w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center text-2xl hover:bg-green-100 transition-colors">
+                    <button class="complete-btn w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center text-2xl hover:bg-orange-100 transition-colors">
                         ✓
                     </button>
                 `;
@@ -239,12 +239,15 @@ const Habits = {
             const isFuture = index > 3;
             const log = logsByDate[date];
             const completed = !!log;
+            const baseClass = 'habit-progress-dot';
             if (isFuture) {
-                return `<div class="w-8 h-8 rounded-full border-2 border-gray-200 bg-white"></div>`;
+                return `<div class="${baseClass} empty border border-gray-200 bg-white" title="${date}"></div>`;
             }
-            return `<div class="w-8 h-8 rounded-full ${completed ? 'bg-green-500' : 'bg-gray-200'} ${isToday ? 'ring-2 ring-orange-500' : ''}" title="${date}"></div>`;
+            const stateClass = completed ? 'completed' : 'empty';
+            const todayClass = isToday ? 'today' : '';
+            return `<div class="${baseClass} ${stateClass} ${todayClass}" title="${date}"></div>`;
         });
-        return `<div class="flex items-center space-x-2">${circles.join('')}</div>`;
+        return `<div class="habit-progress-row">${circles.join('')}</div>`;
     },
     
     renderQuantityProgress(habit, logs) {

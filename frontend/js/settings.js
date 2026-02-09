@@ -22,11 +22,33 @@ const Settings = {
                     📥 Скачать дневник
                 </button>
             </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm mb-4">
+                <h2 class="text-lg font-semibold mb-4 text-gray-800">Данные</h2>
+                <p class="text-sm text-gray-600 mb-2">Если удаление привычки выдаёт «не найдена», обнулите список и создайте привычки заново.</p>
+                <button id="reset-habits-btn" class="w-full py-3 border border-red-300 text-red-600 font-semibold rounded-xl hover:bg-red-50">
+                    Обнулить все привычки
+                </button>
+            </div>
         `;
         
         // Re-attach export button handler
         document.getElementById('export-btn')?.addEventListener('click', () => {
             API.exportBabyDiary();
+        });
+        document.getElementById('reset-habits-btn')?.addEventListener('click', async () => {
+            if (!confirm('Удалить все привычки семьи? Это нельзя отменить.')) return;
+            try {
+                App.showLoading();
+                const res = await API.resetAllHabits();
+                App.showSuccess(res?.message || 'Привычки обнулены.');
+                await this.loadAllHabits();
+                if (typeof Family !== 'undefined') await Family.loadFamilyPage();
+                if (typeof Personal !== 'undefined') await Personal.loadPersonalHabits();
+            } catch (e) {
+                App.showError(e.message || 'Не удалось обнулить привычки');
+            } finally {
+                App.hideLoading();
+            }
         });
         
         await this.loadStats();
@@ -226,7 +248,12 @@ const Settings = {
             if (App.currentTab === 'personal' && typeof Personal !== 'undefined') await Personal.loadPersonalHabits();
         } catch (error) {
             console.error('Failed to delete habit:', error);
-            App.showError(error.message || 'Не удалось удалить привычку');
+            const msg = error.message || '';
+            if (msg.includes('not found') || msg.includes('Habit not found') || msg.includes('не найден')) {
+                App.showError('Привычка не найдена на сервере. Если вы пересоздавали базу, нажмите «Обнулить привычки» в настройках и создайте привычки заново.');
+            } else {
+                App.showError(msg || 'Не удалось удалить привычку');
+            }
         } finally {
             App.hideLoading();
         }

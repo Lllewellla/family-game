@@ -163,6 +163,31 @@
     transition: width 0.5s ease-out;
 }
 
+/* Habit progress circles - gradient, compact, single line */
+.habit-progress-dot {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.habit-progress-dot.completed {
+    background: linear-gradient(135deg, var(--gradient-orange), var(--gradient-pink));
+}
+.habit-progress-dot.empty {
+    background: #e5e7eb;
+}
+.habit-progress-dot.today {
+    box-shadow: 0 0 0 2px var(--gradient-orange);
+}
+.habit-progress-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: nowrap;
+    min-width: 0;
+}
+
 /* Standard rounded corners for cards and containers */
 .card-default {
     border-radius: var(--border-radius-default);

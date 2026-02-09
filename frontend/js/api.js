@@ -141,9 +141,15 @@ const API = {
     },
     
     async deleteHabit(habitId) {
-        return this.request(`/api/habits/${habitId}`, {
+        const id = typeof habitId === 'string' ? habitId : (habitId?.id ?? String(habitId));
+        return this.request(`/api/habits/${id}`, {
             method: 'DELETE'
         });
+    },
+
+    /** Delete all habits of the current user's family (owner only). Use to reset and start fresh. */
+    async resetAllHabits() {
+        return this.request('/api/habits/reset-all', { method: 'DELETE' });
     },
     
     async completeHabit(habitId, value = null) {

@@ -135,7 +135,7 @@ const Family = {
                 <div class="flex items-center gap-2 mb-2 flex-wrap">
                     ${membersStatus.map(({ member, completed }) => `
                         <div class="flex items-center space-x-1">
-                            <div class="w-6 h-6 rounded-full ${completed ? 'bg-green-500' : 'bg-gray-300'}" title="${completed ? 'Выполнено сегодня' : 'Не выполнено'}"></div>
+                            <div class="habit-progress-dot ${completed ? 'completed' : 'empty'}" style="width:18px;height:18px;min-width:18px;" title="${completed ? 'Выполнено сегодня' : 'Не выполнено'}"></div>
                             <span class="text-xs text-gray-600">${Habits.escapeHtml(member.first_name || member.username || '')}</span>
                         </div>
                     `).join('')}
