@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FamilyQuest</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="config.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-gradient-to-br from-orange-50 to-pink-50 min-h-screen">
+    <div id="app" class="container mx-auto px-4 py-4 pb-20">
+        <!-- Header -->
+        <header class="mb-6">
+            <h1 class="text-3xl font-bold text-orange-600 mb-2">FamilyQuest</h1>
+            <p class="text-gray-600 text-sm" id="user-name">Загрузка...</p>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex space-x-2 mb-6 bg-white rounded-lg p-1 shadow-sm">
+            <button class="tab-btn flex-1 py-2 px-4 rounded-md font-medium transition-colors active" data-tab="dashboard">
+                🏠 Главная
+            </button>
+            <button class="tab-btn flex-1 py-2 px-4 rounded-md font-medium transition-colors" data-tab="baby">
+                👶 Малыш
+            </button>
+            <button class="tab-btn flex-1 py-2 px-4 rounded-md font-medium transition-colors" data-tab="settings">
+                ⚙️ Настройки
+            </button>
+        </nav>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard-tab" class="tab-content">
+            <!-- Family Avatars -->
+            <div id="family-avatars" class="bg-white rounded-xl p-4 mb-4 shadow-sm">
+                <h2 class="text-lg font-semibold mb-3 text-gray-800">Семья</h2>
+                <div id="avatars-container" class="flex space-x-4">
+                    <!-- Avatars will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Family Quest Progress -->
+            <div id="family-quest" class="bg-white rounded-xl p-4 mb-4 shadow-sm hidden">
+                <h2 class="text-lg font-semibold mb-2 text-gray-800" id="quest-name">Семейный квест</h2>
+                <div class="w-full bg-gray-200 rounded-full h-4 mb-2">
+                    <div id="quest-progress-bar" class="bg-gradient-to-r from-orange-400 to-pink-400 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p class="text-sm text-gray-600" id="quest-progress-text">0 / 0 XP</p>
+            </div>
+
+            <!-- Today's Habits -->
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+                <h2 class="text-lg font-semibold mb-4 text-gray-800">Привычки на сегодня</h2>
+                <div id="habits-list" class="space-y-3">
+                    <!-- Habits will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Baby Tab -->
+        <div id="baby-tab" class="tab-content hidden">
+            <div class="bg-white rounded-xl p-4 shadow-sm mb-4">
+                <button id="add-event-btn" class="w-full py-3 bg-gradient-to-r from-orange-400 to-pink-400 text-white rounded-lg font-semibold text-lg shadow-md active:scale-95 transition-transform">
+                    + Добавить событие
+                </button>
+            </div>
+
+            <div id="baby-events-list" class="space-y-3">
+                <!-- Events will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings-tab" class="tab-content hidden">
+            <div class="bg-white rounded-xl p-4 shadow-sm mb-4">
+                <h2 class="text-lg font-semibold mb-4 text-gray-800">Статистика</h2>
+                <div id="user-stats" class="space-y-2">
+                    <!-- Stats will be loaded here -->
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-4 shadow-sm mb-4">
+                <h2 class="text-lg font-semibold mb-4 text-gray-800">Экспорт</h2>
+                <button id="export-btn" class="w-full py-3 bg-blue-500 text-white rounded-lg font-semibold shadow-md active:scale-95 transition-transform">
+                    📥 Скачать дневник
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+                <h2 class="text-lg font-semibold mb-4 text-gray-800">Все привычки</h2>
+                <div id="all-habits-list" class="space-y-3">
+                    <!-- All habits will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Event Modal -->
+    <div id="add-event-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 class="text-xl font-semibold mb-4">Добавить событие</h3>
+            <form id="add-event-form">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Тип события</label>
+                    <select id="event-type" class="w-full p-3 border rounded-lg">
+                        <option value="food">🍎 Еда</option>
+                        <option value="skill">🎯 Навык</option>
+                        <option value="note">📝 Заметка</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Описание</label>
+                    <textarea id="event-content" class="w-full p-3 border rounded-lg h-24" placeholder="Опишите событие..."></textarea>
+                </div>
+                <div class="flex space-x-3">
+                    <button type="button" id="cancel-event-btn" class="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold">
+                        Отмена
+                    </button>
+                    <button type="submit" class="flex-1 py-3 bg-gradient-to-r from-orange-400 to-pink-400 text-white rounded-lg font-semibold">
+                        Сохранить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading" class="hidden fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl p-6">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+            <p class="mt-4 text-center text-gray-600">Загрузка...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/habits.js"></script>
+    <script src="js/baby.js"></script>
+    <script src="js/gamification.js"></script>
+    <script src="js/settings.js"></script>
+</body>
+</html>

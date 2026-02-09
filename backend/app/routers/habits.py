@@ -1,0 +1,206 @@
+"""Habit management endpoints."""
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from typing import List
+from datetime import date, datetime, timedelta
+from uuid import UUID
+
+from ..database import get_db
+from ..models import User, Habit, HabitLog, HabitType, PrivacyType
+from ..schemas import HabitCreate, HabitUpdate, HabitResponse, HabitLogCreate, HabitLogResponse
+from ..routers.users import get_current_user
+
+router = APIRouter(prefix="/api/habits", tags=["habits"])
+
+
+def check_habit_access(habit: Habit, user: User) -> bool:
+    """Check if user has access to a habit."""
+    if habit.privacy == PrivacyType.PERSONAL:
+        return habit.owner_id == user.id
+    elif habit.privacy == PrivacyType.PUBLIC:
+        return habit.family_id == user.family_id
+    elif habit.privacy == PrivacyType.SHARED:
+        return habit.family_id == user.family_id
+    return False
+
+
+@router.get("", response_model=List[HabitResponse])
+async def get_habits(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all habits accessible to current user."""
+    habits = db.query(Habit).filter(
+        Habit.family_id == current_user.family_id,
+        Habit.is_active == True
+    ).all()
+    
+    # Filter by privacy
+    accessible_habits = [
+        h for h in habits 
+        if h.privacy != PrivacyType.PERSONAL or h.owner_id == current_user.id
+    ]
+    
+    return [HabitResponse.model_validate(h) for h in accessible_habits]
+
+
+@router.get("/today", response_model=List[HabitResponse])
+async def get_today_habits(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get habits scheduled for today."""
+    today = date.today()
+    weekday = today.weekday()  # 0 = Monday, 6 = Sunday
+    
+    habits = db.query(Habit).filter(
+        Habit.family_id == current_user.family_id,
+        Habit.is_active == True
+    ).all()
+    
+    # Filter by schedule
+    today_habits = []
+    for habit in habits:
+        if habit.schedule_type == "daily":
+            today_habits.append(habit)
+        elif habit.schedule_type == "weekly":
+            schedule_config = habit.schedule_config or {}
+            days = schedule_config.get("days", [])
+            if weekday in days:
+                today_habits.append(habit)
+        elif habit.schedule_type == "custom":
+            schedule_config = habit.schedule_config or {}
+            interval = schedule_config.get("interval", 1)
+            start_date = datetime.fromisoformat(schedule_config.get("start_date", today.isoformat())).date()
+            days_diff = (today - start_date).days
+            if days_diff % interval == 0:
+                today_habits.append(habit)
+    
+    # Filter by privacy
+    accessible_habits = [
+        h for h in today_habits 
+        if h.privacy != PrivacyType.PERSONAL or h.owner_id == current_user.id
+    ]
+    
+    return [HabitResponse.model_validate(h) for h in accessible_habits]
+
+
+@router.post("", response_model=HabitResponse)
+async def create_habit(
+    habit_data: HabitCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create a new habit."""
+    if not current_user.family_id:
+        raise HTTPException(status_code=400, detail="User must belong to a family")
+    
+    habit = Habit(
+        family_id=current_user.family_id,
+        owner_id=current_user.id,
+        **habit_data.model_dump()
+    )
+    db.add(habit)
+    db.commit()
+    db.refresh(habit)
+    
+    return HabitResponse.model_validate(habit)
+
+
+@router.put("/{habit_id}", response_model=HabitResponse)
+async def update_habit(
+    habit_id: UUID,
+    habit_data: HabitUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update a habit."""
+    habit = db.query(Habit).filter(Habit.id == habit_id).first()
+    if not habit:
+        raise HTTPException(status_code=404, detail="Habit not found")
+    
+    # Check access (only owner can update)
+    if habit.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Only owner can update habit")
+    
+    update_data = habit_data.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(habit, field, value)
+    
+    db.commit()
+    db.refresh(habit)
+    
+    return HabitResponse.model_validate(habit)
+
+
+@router.delete("/{habit_id}")
+async def delete_habit(
+    habit_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a habit."""
+    habit = db.query(Habit).filter(Habit.id == habit_id).first()
+    if not habit:
+        raise HTTPException(status_code=404, detail="Habit not found")
+    
+    # Check access (only owner can delete)
+    if habit.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Only owner can delete habit")
+    
+    db.delete(habit)
+    db.commit()
+    
+    return {"message": "Habit deleted successfully"}
+
+
+@router.post("/{habit_id}/complete", response_model=HabitLogResponse)
+async def complete_habit(
+    habit_id: UUID,
+    log_data: HabitLogCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Mark a habit as completed for today."""
+    habit = db.query(Habit).filter(Habit.id == habit_id).first()
+    if not habit:
+        raise HTTPException(status_code=404, detail="Habit not found")
+    
+    # Check access
+    if not check_habit_access(habit, current_user):
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Check if already logged today
+    today = log_data.date or date.today()
+    existing_log = db.query(HabitLog).filter(
+        HabitLog.habit_id == habit_id,
+        HabitLog.user_id == current_user.id,
+        HabitLog.date == today
+    ).first()
+    
+    if existing_log:
+        raise HTTPException(status_code=400, detail="Habit already completed today")
+    
+    # Create log entry
+    log = HabitLog(
+        habit_id=habit_id,
+        user_id=current_user.id,
+        date=today,
+        value=log_data.value,
+        xp_earned=habit.xp_reward
+    )
+    db.add(log)
+    
+    # Update user XP (will be handled by XP service)
+    current_user.total_xp += habit.xp_reward
+    
+    # Recalculate level
+    from math import sqrt
+    new_level = int(sqrt(current_user.total_xp / 100)) + 1
+    if new_level > current_user.level:
+        current_user.level = new_level
+    
+    db.commit()
+    db.refresh(log)
+    
+    return HabitLogResponse.model_validate(log)
