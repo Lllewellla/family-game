@@ -4,6 +4,10 @@ const App = {
     currentTab: 'dashboard',
     
     init() {
+        // #region agent log
+        App.addDebugLog('INFO', 'App.init: starting', {hasFamily: typeof Family !== 'undefined', hasPersonal: typeof Personal !== 'undefined', hasBaby: typeof Baby !== 'undefined'});
+        // #endregion
+        
         // Initialize Telegram WebApp
         if (window.Telegram?.WebApp) {
             window.Telegram.WebApp.ready();
@@ -22,6 +26,10 @@ const App = {
         
         // Setup event listeners
         this.setupEventListeners();
+        
+        // #region agent log
+        App.addDebugLog('INFO', 'App.init: completed');
+        // #endregion
     },
     
     setupTabs() {
@@ -35,6 +43,13 @@ const App = {
     },
     
     switchTab(tabName) {
+        // #region agent log
+        const logData = {location:'app.js:37',message:'switchTab called',data:{tabName,hasFamily:typeof Family!=='undefined',hasPersonal:typeof Personal!=='undefined',hasBaby:typeof Baby!=='undefined'},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
+        console.log('[DEBUG]', logData);
+        App.addDebugLog('INFO', `switchTab: ${tabName}`, {hasFamily: typeof Family !== 'undefined', hasPersonal: typeof Personal !== 'undefined', hasBaby: typeof Baby !== 'undefined'});
+        fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData)}).catch(()=>{});
+        // #endregion
+        
         // Update buttons
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.tab === tabName);
@@ -42,19 +57,62 @@ const App = {
         
         // Update content
         document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.toggle('hidden', !content.id.startsWith(tabName));
+            const expectedId = `${tabName}-tab`;
+            const isActive = content.id === expectedId;
+            content.classList.toggle('hidden', !isActive);
+            // #region agent log
+            if (isActive) {
+                App.addDebugLog('INFO', `Showing tab: ${expectedId}`, {contentId: content.id, isHidden: content.classList.contains('hidden')});
+            }
+            // #endregion
         });
         
         this.currentTab = tabName;
         
         // Load tab-specific data
         if (tabName === 'family') {
+            // #region agent log
+            const logData1 = {location:'app.js:51',message:'Loading family tab',data:{familyDefined:typeof Family!=='undefined'},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
+            console.log('[DEBUG]', logData1);
+            fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData1)}).catch(()=>{});
+            // #endregion
             if (typeof Family !== 'undefined') {
+                // #region agent log
+                const logData2 = {location:'app.js:53',message:'Calling Family.loadFamilyPage',data:{},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
+                console.log('[DEBUG]', logData2);
+                App.addDebugLog('INFO', 'Calling Family.loadFamilyPage');
+                fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData2)}).catch(()=>{});
+                // #endregion
                 Family.loadFamilyPage();
+            } else {
+                // #region agent log
+                const logData3 = {location:'app.js:55',message:'Family module not defined',data:{},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
+                console.error('[DEBUG ERROR]', logData3);
+                App.addDebugLog('ERROR', 'Family module not defined!');
+                fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData3)}).catch(()=>{});
+                // #endregion
             }
         } else if (tabName === 'personal') {
+            // #region agent log
+            const logData4 = {location:'app.js:57',message:'Loading personal tab',data:{personalDefined:typeof Personal!=='undefined'},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
+            console.log('[DEBUG]', logData4);
+            fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData4)}).catch(()=>{});
+            // #endregion
             if (typeof Personal !== 'undefined') {
+                // #region agent log
+                const logData5 = {location:'app.js:59',message:'Calling Personal.loadPersonalHabits',data:{},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
+                console.log('[DEBUG]', logData5);
+                App.addDebugLog('INFO', 'Calling Personal.loadPersonalHabits');
+                fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData5)}).catch(()=>{});
+                // #endregion
                 Personal.loadPersonalHabits();
+            } else {
+                // #region agent log
+                const logData6 = {location:'app.js:61',message:'Personal module not defined',data:{},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
+                console.error('[DEBUG ERROR]', logData6);
+                App.addDebugLog('ERROR', 'Personal module not defined!');
+                fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData6)}).catch(()=>{});
+                // #endregion
             }
         } else if (tabName === 'baby') {
             Baby.loadEvents();
@@ -214,10 +272,34 @@ const App = {
     },
     
     showError(message) {
+        this.addDebugLog('ERROR', message);
         if (window.Telegram?.WebApp) {
             window.Telegram.WebApp.showAlert(message);
         } else {
             alert(message);
+        }
+    },
+    
+    addDebugLog(type, message, data = null) {
+        const panel = document.getElementById('debug-log-panel');
+        const content = document.getElementById('debug-log-content');
+        if (!panel || !content) return;
+        
+        panel.style.display = 'block';
+        // Clear placeholder on first log
+        if (content.textContent.includes('Логи появятся')) {
+            content.innerHTML = '';
+        }
+        const time = new Date().toLocaleTimeString();
+        const logEntry = document.createElement('div');
+        logEntry.className = `mb-1 ${type === 'ERROR' ? 'text-red-600' : 'text-gray-700'}`;
+        logEntry.innerHTML = `<span class="font-mono">[${time}]</span> <span class="font-semibold">[${type}]</span> ${message}${data ? ` <span class="text-gray-500">${JSON.stringify(data)}</span>` : ''}`;
+        content.appendChild(logEntry);
+        content.scrollTop = content.scrollHeight;
+        
+        // Keep only last 20 logs
+        while (content.children.length > 20) {
+            content.removeChild(content.firstChild);
         }
     },
     

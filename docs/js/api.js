@@ -100,7 +100,14 @@ const API = {
     },
     
     async getSharedHabits() {
-        return this.request('/api/habits/shared');
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:102',message:'getSharedHabits called',data:{},timestamp:Date.now(),runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
+        const result = await this.request('/api/habits/shared');
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:105',message:'getSharedHabits result',data:{resultCount:result?.length||0,hasError:result instanceof Error},timestamp:Date.now(),runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
+        return result;
     },
     
     async getPublicHabits(userId) {
@@ -108,7 +115,14 @@ const API = {
     },
     
     async getPersonalHabits() {
-        return this.request('/api/habits/personal');
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:110',message:'getPersonalHabits called',data:{},timestamp:Date.now(),runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
+        const result = await this.request('/api/habits/personal');
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.js:113',message:'getPersonalHabits result',data:{resultCount:result?.length||0,hasError:result instanceof Error},timestamp:Date.now(),runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
+        return result;
     },
     
     async getHabitLogs(habitId, startDate, endDate, userId = null) {

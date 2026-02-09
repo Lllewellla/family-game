@@ -1,6 +1,34 @@
 /** Settings page */
 const Settings = {
     async loadSettings() {
+        // Initialize settings content in modal
+        const settingsContent = document.getElementById('settings-content');
+        if (!settingsContent) {
+            App.addDebugLog('ERROR', 'settings-content container not found!');
+            return;
+        }
+        
+        // Clear and rebuild settings content
+        settingsContent.innerHTML = `
+            <div class="bg-white rounded-xl p-4 shadow-sm mb-4">
+                <h2 class="text-lg font-semibold mb-4 text-gray-800">Статистика</h2>
+                <div id="user-stats" class="space-y-2">
+                    <!-- Stats will be loaded here -->
+                </div>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm mb-4">
+                <h2 class="text-lg font-semibold mb-4 text-gray-800">Экспорт</h2>
+                <button id="export-btn" class="w-full py-3 btn-gradient text-white font-semibold">
+                    📥 Скачать дневник
+                </button>
+            </div>
+        `;
+        
+        // Re-attach export button handler
+        document.getElementById('export-btn')?.addEventListener('click', () => {
+            API.exportBabyDiary();
+        });
+        
         await this.loadStats();
         await this.loadAllHabits();
     },
@@ -11,6 +39,7 @@ const Settings = {
             Gamification.renderStats(stats);
         } catch (error) {
             console.error('Failed to load stats:', error);
+            App.addDebugLog('ERROR', `Failed to load stats: ${error?.message}`);
         }
     },
     
@@ -24,8 +53,34 @@ const Settings = {
     },
     
     renderAllHabits(habits) {
-        const container = document.getElementById('all-habits-list');
-        if (!container) return;
+        // Settings content is now in modal
+        const settingsContent = document.getElementById('settings-content');
+        if (!settingsContent) {
+            App.addDebugLog('ERROR', 'settings-content container not found!');
+            return;
+        }
+        
+        // Create or find all-habits-list inside settings-content
+        let container = document.getElementById('all-habits-list');
+        if (!container) {
+            // Create the container if it doesn't exist
+            const habitsSection = document.createElement('div');
+            habitsSection.className = 'bg-white rounded-xl p-4 shadow-sm mb-4';
+            habitsSection.innerHTML = `
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-800">Все привычки</h2>
+                    <button id="add-habit-btn" class="px-4 py-2 btn-gradient text-white font-semibold text-sm">+ Добавить</button>
+                </div>
+                <div id="all-habits-list" class="space-y-3"></div>
+            `;
+            settingsContent.appendChild(habitsSection);
+            container = document.getElementById('all-habits-list');
+        }
+        
+        if (!container) {
+            App.addDebugLog('ERROR', 'Failed to create all-habits-list container');
+            return;
+        }
         
         if (habits.length === 0) {
             container.innerHTML = '<p class="text-gray-500 text-center py-4">Нет привычек</p>';

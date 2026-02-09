@@ -1,17 +1,47 @@
 /** Personal habits page management */
 const Personal = {
     async loadPersonalHabits() {
+        // #region agent log
+        const logData1 = {location:'personal.js:3',message:'loadPersonalHabits entry',data:{},timestamp:Date.now(),runId:'run1',hypothesisId:'D'};
+        console.log('[DEBUG]', logData1);
+        fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData1)}).catch(()=>{});
+        // #endregion
         try {
             const habits = await API.getPersonalHabits();
+            // #region agent log
+            const logData2 = {location:'personal.js:6',message:'getPersonalHabits response',data:{habitsCount:habits?.length||0},timestamp:Date.now(),runId:'run1',hypothesisId:'D'};
+            console.log('[DEBUG]', logData2);
+            fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData2)}).catch(()=>{});
+            // #endregion
             this.renderPersonalHabits(habits);
         } catch (error) {
+            // #region agent log
+            const logData3 = {location:'personal.js:9',message:'loadPersonalHabits error',data:{error:error?.message,errorStack:error?.stack},timestamp:Date.now(),runId:'run1',hypothesisId:'D'};
+            console.error('[DEBUG ERROR]', logData3);
+            fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData3)}).catch(()=>{});
+            // #endregion
             console.error('Failed to load personal habits:', error);
             App.showError('Не удалось загрузить привычки');
         }
     },
     
     async renderPersonalHabits(habits) {
+        // #region agent log
+        const logData1 = {location:'personal.js:14',message:'renderPersonalHabits entry',data:{habitsCount:habits?.length||0},timestamp:Date.now(),runId:'run1',hypothesisId:'E'};
+        console.log('[DEBUG]', logData1);
+        fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData1)}).catch(()=>{});
+        // #endregion
         const container = document.getElementById('personal-habits-list');
+        // #region agent log
+        const logData2 = {location:'personal.js:16',message:'container check',data:{containerExists:!!container,containerId:'personal-habits-list'},timestamp:Date.now(),runId:'run1',hypothesisId:'E'};
+        console.log('[DEBUG]', logData2);
+        if (!container) {
+            App.addDebugLog('ERROR', 'Container personal-habits-list not found!');
+        } else {
+            App.addDebugLog('INFO', 'Container personal-habits-list found');
+        }
+        fetch('http://127.0.0.1:7243/ingest/600ec16e-f3a9-41b7-bb5f-b658a8312e0e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(logData2)}).catch(()=>{});
+        // #endregion
         if (!container) return;
         
         if (habits.length === 0) {
