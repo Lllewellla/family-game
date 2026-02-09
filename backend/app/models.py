@@ -88,6 +88,7 @@ class Habit(Base):
     schedule_config = Column(JSONB, nullable=True)  # Days of week, interval, etc.
     privacy = Column(SQLEnum(PrivacyType), nullable=False)
     xp_reward = Column(Integer, default=10, nullable=False)
+    target_value = Column(JSONB, nullable=True)  # Target value depends on habit type. For SHARED habits: {"user_targets": {user_id: target_value}}
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

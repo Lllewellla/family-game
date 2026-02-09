@@ -176,5 +176,106 @@ const Habits = {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    },
+    
+    renderHabitProgress(habit, logs) {
+        if (!logs || logs.length === 0) {
+            return '<div class="text-sm text-gray-500">Нет данных</div>';
+        }
+        
+        switch (habit.type) {
+            case 'boolean':
+                return this.renderBooleanProgress(logs);
+            case 'quantity':
+                return this.renderQuantityProgress(habit, logs);
+            case 'checklist':
+                // For weekly target habits
+                if (habit.schedule_type === 'weekly') {
+                    return this.renderWeeklyProgress(habit, logs);
+                }
+                return this.renderBooleanProgress(logs);
+            default:
+                return '';
+        }
+    },
+    
+    renderBooleanProgress(logs) {
+        // Get last 7 days: 3 past, today, 3 future
+        const today = new Date();
+        const days = [];
+        for (let i = -3; i <= 3; i++) {
+            const date = new Date(today);
+            date.setDate(today.getDate() + i);
+            days.push(date.toISOString().split('T')[0]);
+        }
+        
+        const logsByDate = {};
+        logs.forEach(log => {
+            logsByDate[log.date] = log;
+        });
+        
+        const circles = days.map((date, index) => {
+            const isToday = index === 3;
+            const isFuture = index > 3;
+            const log = logsByDate[date];
+            const completed = !!log;
+            
+            if (isFuture) {
+                return `<div class="w-8 h-8 rounded-full border-2 border-gray-200 bg-white"></div>`;
+            }
+            
+            return `<div class="w-8 h-8 rounded-full ${completed ? 'bg-green-500' : 'bg-gray-200'} ${isToday ? 'ring-2 ring-orange-500' : ''}" title="${date}"></div>`;
+        });
+        
+        return `<div class="flex items-center space-x-2">${circles.join('')}</div>`;
+    },
+    
+    renderQuantityProgress(habit, logs) {
+        const today = new Date().toISOString().split('T')[0];
+        const todayLog = logs.find(log => log.date === today);
+        const currentValue = todayLog && todayLog.value ? (todayLog.value.value || todayLog.value.quantity || 0) : 0;
+        
+        const targetValue = habit.target_value ? (habit.target_value.target || habit.target_value) : null;
+        
+        if (targetValue === null) {
+            return `<div class="text-2xl font-bold text-orange-600">${currentValue}</div>`;
+        }
+        
+        const isExceeded = currentValue > targetValue;
+        const isGood = currentValue >= targetValue * 0.9; // 90% of target
+        
+        return `
+            <div class="flex items-baseline space-x-2">
+                <span class="text-2xl font-bold ${isExceeded ? 'text-red-600' : isGood ? 'text-green-600' : 'text-orange-600'}">${currentValue}</span>
+                <span class="text-sm text-gray-500">/ ${targetValue}</span>
+            </div>
+        `;
+    },
+    
+    renderWeeklyProgress(habit, logs) {
+        const today = new Date();
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
+        
+        const weekLogs = logs.filter(log => {
+            const logDate = new Date(log.date);
+            return logDate >= weekStart && logDate <= today;
+        });
+        
+        const completedCount = weekLogs.length;
+        const targetValue = habit.target_value ? (habit.target_value.target || habit.target_value) : 7;
+        const percentage = Math.min((completedCount / targetValue) * 100, 100);
+        
+        return `
+            <div class="space-y-1">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-600">Прогресс</span>
+                    <span class="font-semibold ${completedCount >= targetValue ? 'text-green-600' : 'text-gray-600'}">${completedCount}/${targetValue}</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-gradient-default h-2 rounded-full transition-all" style="width: ${percentage}%"></div>
+                </div>
+            </div>
+        `;
     }
 };

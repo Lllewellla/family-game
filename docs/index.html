@@ -1,2023 +1,5932 @@
-<!DOCTYPE html>
-
-
-
-
-
-
-
-
-<html lang="ru">
-
-
-
-
-
-
-
-
-<head>
-
-
-
-
-
-
-
-
-    <meta charset="UTF-8">
-
-
-
-
-
-
-
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-
-
-
-
-
-
-
-    <title>FamilyQuest</title>
-
-
-
-
-
-
-
-
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-
-
-
-
-
-
-
-    <script src="https://cdn.tailwindcss.com"></script>
-
-
-
-
-
-
-
-
-    <script src="config.js"></script>
-
-
-
-
-
-
-
-
-    <link rel="stylesheet" href="css/styles.css">
-
-
-
-
-
-
-
-
-</head>
-
-
-
-
-
-
-
-
-<body class="bg-gradient-to-br from-orange-50 to-pink-50 min-h-screen">
-
-
-
-
-
-
-
-
-    <div id="app" class="container mx-auto px-4 py-4 pb-20">
-
-
-
-
-
-
-
-
-        <!-- Header -->
-
-
-
-
-
-
-
-
-        <header class="mb-6">
-
-
-
-
-
-
-
-
-            <div class="flex items-center justify-between mb-2">
-                <h1 class="text-3xl font-bold text-orange-600">FamilyQuest</h1>
-                <div id="avatars-container" class="flex items-center space-x-2">
-                    <!-- Avatars will be loaded here -->
-                </div>
-
-
-
-
-
-
-
-
-            <p class="text-gray-600 text-sm" id="user-name">Загрузка...</p>
-
-
-
-
-
-
-
-
-        </header>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        <!-- Navigation Tabs -->
-
-
-
-
-
-
-
-
-        <nav class="flex space-x-2 mb-6 bg-white rounded-lg p-1 shadow-sm">
-
-
-
-
-
-
-
-
-            <button class="tab-btn flex-1 py-2 px-4 rounded-md font-medium transition-colors active" data-tab="dashboard">
-
-
-
-
-
-
-
-
-                🏠 Главная
-
-
-
-
-
-
-
-
-            </button>
-
-
-
-
-
-
-
-
-            <button class="tab-btn flex-1 py-2 px-4 rounded-md font-medium transition-colors" data-tab="baby">
-
-
-
-
-
-
-
-
-                👶 Малыш
-
-
-
-
-
-
-
-
-            </button>
-
-
-
-
-
-
-
-
-            <button class="tab-btn flex-1 py-2 px-4 rounded-md font-medium transition-colors" data-tab="settings">
-
-
-
-
-
-
-
-
-                ⚙️ Настройки
-
-
-
-
-
-
-
-
-            </button>
-
-
-
-
-
-
-
-
-        </nav>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        <!-- Dashboard Tab -->
-
-
-
-
-
-
-
-
-        <div id="dashboard-tab" class="tab-content">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                        <p class="text-sm opacity-90">Р’СЃРµРіРѕ XP</p>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                        <p class="text-sm opacity-90">Р”Рѕ СЃР»РµРґСѓСЋС‰РµРіРѕ СѓСЂРѕРІРЅСЏ</p>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            <!-- Family Quest Progress -->
-
-
-
-
-
-
-
-
-            <div id="family-quest" class="bg-white rounded-xl p-4 mb-4 shadow-sm hidden">
-
-
-
-
-
-
-
-
-                <h2 class="text-lg font-semibold mb-2 text-gray-800" id="quest-name">Семейный квест</h2>
-
-
-
-
-
-
-
-
-                <div class="w-full bg-gray-200 rounded-full h-4 mb-2">
-
-
-
-
-
-
-
-
-                    <div id="quest-progress-bar" class="bg-gradient-default h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                <p class="text-sm text-gray-600" id="quest-progress-text">0 / 0 XP</p>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            <!-- Today's Habits -->
-
-
-
-
-
-
-
-
-            <div class="bg-white rounded-xl p-4 shadow-sm">
-
-
-
-
-
-
-
-
-                <h2 class="text-lg font-semibold mb-4 text-gray-800">Привычки на сегодня</h2>
-
-
-
-
-
-
-
-
-                <div id="habits-list" class="space-y-3">
-
-
-
-
-
-
-
-
-                    <!-- Habits will be loaded here -->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        <!-- Baby Tab -->
-
-
-
-
-
-
-
-
-        <div id="baby-tab" class="tab-content hidden">
-
-
-
-
-
-
-
-
-            <div class="bg-white rounded-xl p-4 shadow-sm mb-4">
-
-
-
-
-
-
-
-
-                <button id="add-event-btn" class="w-full py-3 btn-gradient text-white font-semibold text-lg">
-
-
-
-
-
-
-
-
-                    + Добавить событие
-
-
-
-
-
-
-
-
-                </button>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            <div id="baby-events-list" class="space-y-3">
-
-
-
-
-
-
-
-
-                <!-- Events will be loaded here -->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        <!-- Settings Tab -->
-
-
-
-
-
-
-
-
-        <div id="settings-tab" class="tab-content hidden">
-
-
-
-
-
-
-
-
-            <div class="bg-white rounded-xl p-4 shadow-sm mb-4">
-
-
-
-
-
-
-
-
-                <h2 class="text-lg font-semibold mb-4 text-gray-800">Статистика</h2>
-
-
-
-
-
-
-
-
-                <div id="user-stats" class="space-y-2">
-
-
-
-
-
-
-
-
-                    <!-- Stats will be loaded here -->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            <div class="bg-white rounded-xl p-4 shadow-sm mb-4">
-
-
-
-
-
-
-
-
-                <h2 class="text-lg font-semibold mb-4 text-gray-800">Экспорт</h2>
-
-
-
-
-
-
-
-
-                <button id="export-btn" class="w-full py-3 btn-gradient text-white font-semibold">
-
-
-
-
-
-
-
-
-                    📥 Скачать дневник
-
-
-
-
-
-
-
-
-                </button>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            <div class="bg-white rounded-xl p-4 shadow-sm">
-
-
-
-
-
-
-
-
-                <div class="flex items-center justify-between mb-4">
-
-
-
-
-
-
-
-
-                    <h2 class="text-lg font-semibold text-gray-800">Все привычки</h2>
-
-
-
-
-
-
-
-
-                    <button id="add-habit-btn" class="px-4 py-2 btn-gradient text-white font-semibold text-sm">
-
-
-
-
-
-
-
-
-                        + Добавить
-
-
-
-
-
-
-
-
-                    </button>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                <div id="all-habits-list" class="space-y-3">
-
-
-
-
-
-
-
-
-                    <!-- All habits will be loaded here -->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <!-- Add Event Modal -->
-
-
-
-
-
-
-
-
-    <div id="add-event-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-
-
-
-
-
-
-
-
-        <div class="bg-white rounded-xl p-6 w-full max-w-md">
-
-
-
-
-
-
-
-
-            <h3 class="text-xl font-semibold mb-4">Добавить событие</h3>
-
-
-
-
-
-
-
-
-            <form id="add-event-form">
-
-
-
-
-
-
-
-
-                <div class="mb-4">
-
-
-
-
-
-
-
-
-                    <label class="block text-sm font-medium mb-2">Тип события</label>
-
-
-
-
-
-
-
-
-                    <select id="event-type" class="w-full p-3 border rounded-lg">
-
-
-
-
-
-
-
-
-                        <option value="food">🍎 Еда</option>
-
-
-
-
-
-
-
-
-                        <option value="skill">🎯 Навык</option>
-
-
-
-
-
-
-
-
-                        <option value="note">📝 Заметка</option>
-
-
-
-
-
-
-
-
-                    </select>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                <div class="mb-4">
-
-
-
-
-
-
-
-
-                    <label class="block text-sm font-medium mb-2">Описание</label>
-
-
-
-
-
-
-
-
-                    <textarea id="event-content" class="w-full p-3 border rounded-lg h-24" placeholder="Опишите событие..."></textarea>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                <div class="flex space-x-3">
-
-
-
-
-
-
-
-
-                    <button type="button" id="cancel-event-btn" class="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold">
-
-
-
-
-
-
-
-
-                        Отмена
-
-
-
-
-
-
-
-
-                    </button>
-
-
-
-
-
-
-
-
-                    <button type="submit" class="flex-1 py-3 btn-gradient text-white font-semibold">
-
-
-
-
-
-
-
-
-                        Сохранить
-
-
-
-
-
-
-
-
-                    </button>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            </form>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <!-- Add/Edit Habit Modal -->
-
-
-
-
-
-
-
-
-    <div id="habit-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-
-
-
-
-
-
-
-
-        <div class="bg-white rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-
-
-
-
-
-
-
-
-            <h3 id="habit-modal-title" class="text-xl font-semibold mb-4">Добавить привычку</h3>
-
-
-
-
-
-
-
-
-            <form id="habit-form">
-
-
-
-
-
-
-
-
-                <input type="hidden" id="habit-id" value="">
-
-
-
-
-
-
-
-
-                <div class="mb-4">
-
-
-
-
-
-
-
-
-                    <label class="block text-sm font-medium mb-2">Название</label>
-
-
-
-
-
-
-
-
-                    <input type="text" id="habit-name" class="w-full p-3 border rounded-lg" placeholder="Например: Утренняя зарядка" required>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                <div class="mb-4">
-
-
-
-
-
-
-
-
-                    <label class="block text-sm font-medium mb-2">Тип привычки</label>
-
-
-
-
-
-
-
-
-                    <select id="habit-type" class="w-full p-3 border rounded-lg" required>
-
-
-
-
-
-
-
-
-                        <option value="boolean">Да/Нет</option>
-
-
-
-
-
-
-
-
-                        <option value="scale">Шкала 1-5</option>
-
-
-
-
-
-
-
-
-                        <option value="quantity">Количество</option>
-
-
-
-
-
-
-
-
-                        <option value="checklist">Чек-лист</option>
-
-
-
-
-
-
-
-
-                    </select>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                <div class="mb-4">
-
-
-
-
-
-
-
-
-                    <label class="block text-sm font-medium mb-2">Расписание</label>
-
-
-
-
-
-
-
-
-                    <select id="habit-schedule" class="w-full p-3 border rounded-lg" required>
-
-
-
-
-
-
-
-
-                        <option value="daily">Ежедневно</option>
-
-
-
-
-
-
-
-
-                        <option value="weekly">Еженедельно</option>
-
-
-
-
-
-
-
-
-                        <option value="custom">Произвольное</option>
-
-
-
-
-
-
-
-
-                    </select>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                <div class="mb-4">
-
-
-
-
-
-
-
-
-                    <label class="block text-sm font-medium mb-2">Приватность</label>
-
-
-
-
-
-
-
-
-                    <select id="habit-privacy" class="w-full p-3 border rounded-lg" required>
-
-
-
-
-
-
-
-
-                        <option value="personal">Личная</option>
-
-
-
-
-
-
-
-
-                        <option value="public">Публичная</option>
-
-
-
-
-
-
-
-
-                        <option value="shared">Общая</option>
-
-
-
-
-
-
-
-
-                    </select>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                <div class="mb-4">
-
-
-
-
-
-
-
-
-                    <label class="block text-sm font-medium mb-2">XP награда</label>
-
-
-
-
-
-
-
-
-                    <input type="number" id="habit-xp" class="w-full p-3 border rounded-lg" value="10" min="1" max="100" required>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                <div class="flex space-x-3">
-
-
-
-
-
-
-
-
-                    <button type="button" id="cancel-habit-btn" class="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold">
-
-
-
-
-
-
-
-
-                        Отмена
-
-
-
-
-
-
-
-
-                    </button>
-
-
-
-
-
-
-
-
-                    <button type="submit" class="flex-1 py-3 btn-gradient text-white font-semibold">
-
-
-
-
-
-
-
-
-                        Сохранить
-
-
-
-
-
-
-
-
-                    </button>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            </form>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <!-- Invite Family Member Modal -->
-
-
-
-
-
-
-
-
-    <div id="invite-member-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-
-
-
-
-
-
-
-
-        <div class="bg-white rounded-xl p-6 w-full max-w-md">
-
-
-
-
-
-
-
-
-            <h3 class="text-xl font-semibold mb-4">Р”РѕР±Р°РІРёС‚СЊ С‡Р»РµРЅР° СЃРµРјСЊРё</h3>
-
-
-
-
-
-
-
-
-            <form id="invite-member-form">
-
-
-
-
-
-
-
-
-                <div class="mb-4">
-
-
-
-
-
-
-
-
-                    <label class="block text-sm font-medium mb-2">Username (без @)</label>
-
-
-
-
-
-
-
-
-                    <input type="text" id="invite-username" class="w-full p-3 border rounded-lg" placeholder="username">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                <div class="mb-4">
-
-
-
-
-
-
-
-
-                    <p class="text-xs text-gray-500 mb-2">или</p>
-
-
-
-
-
-
-
-
-                    <label class="block text-sm font-medium mb-2">Telegram ID</label>
-
-
-
-
-
-
-
-
-                    <input type="text" id="invite-telegram-id" class="w-full p-3 border rounded-lg" placeholder="123456789">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                <div class="flex space-x-3">
-
-
-
-
-
-
-
-
-                    <button type="button" id="cancel-invite-btn" class="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold">
-
-
-
-
-
-
-
-
-                        Отмена
-
-
-
-
-
-
-
-
-                    </button>
-
-
-
-
-
-
-
-
-                    <button type="submit" class="flex-1 py-3 btn-gradient text-white font-semibold">
-
-
-
-
-
-
-
-
-                        Пригласить
-
-
-
-
-
-
-
-
-                    </button>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            </form>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <!-- Loading Overlay -->
-
-
-
-
-
-
-
-
-    <div id="loading" class="hidden fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center">
-
-
-
-
-
-
-
-
-        <div class="bg-white rounded-xl p-6">
-
-
-
-
-
-
-
-
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
-
-
-
-
-
-
-
-
-            <p class="mt-4 text-center text-gray-600">Загрузка...</p>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    <!-- Scripts -->
-
-
-
-
-
-
-
-
-    <script src="js/api.js"></script>
-
-
-
-
-
-
-
-
-    <script src="js/app.js"></script>
-
-
-
-
-
-
-
-
-    <script src="js/habits.js"></script>
-
-
-
-
-
-
-
-
-    <script src="js/baby.js"></script>
-
-
-
-
-
-
-
-
-    <script src="js/gamification.js"></script>
-
-
-
-
-
-
-
-
-    <script src="js/settings.js"></script>
-
-
-
-
-
-
-
-
-</body>
-
-
-
-
-
-
-
-
-</html>
-
-
-
-
-
-
-
-
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html lang="ru">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<head>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <meta charset="UTF-8">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <title>FamilyQuest</title>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <script src="config.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <link rel="stylesheet" href="css/styles.css">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<body class="bg-gradient-to-br from-orange-50 to-pink-50 min-h-screen">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="app" class="container mx-auto px-4 py-4 pb-20">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <!-- Header -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <header class="mb-6">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <div class="flex items-center justify-between mb-2">
+
+
+                <h1 class="text-3xl font-bold text-orange-600">FamilyQuest</h1>
+
+
+                <div id="avatars-container" class="flex items-center space-x-2">
+
+
+                    <!-- Avatars will be loaded here -->
+
+
+                </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <p class="text-gray-600 text-sm" id="user-name">Загрузка...</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        </header>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <!-- Navigation Tabs -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <nav class="flex space-x-2 mb-6 bg-white rounded-lg p-1 shadow-sm">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <button class="tab-btn flex-1 py-2 px-4 rounded-md font-medium transition-colors active" data-tab="family">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                👨‍👩‍👧‍👦 СЕМЬЯ
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <button class="tab-btn flex-1 py-2 px-4 rounded-md font-medium transition-colors" data-tab="personal">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                👤 ЛИЧНОЕ
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <button class="tab-btn flex-1 py-2 px-4 rounded-md font-medium transition-colors" data-tab="baby">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                👶 МАЛЫШ
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        </nav>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <!-- Dashboard Tab -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <div id="family-tab" class="tab-content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        <!-- Family Quest Progress -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <div id="family-quest" class="bg-white rounded-xl p-4 mb-4 shadow-sm hidden">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <h2 class="text-lg font-semibold mb-2 text-gray-800" id="quest-name">Семейный квест</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <div class="w-full bg-gray-200 rounded-full h-4 mb-2">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <div id="quest-progress-bar" class="bg-gradient-default h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <p class="text-sm text-gray-600" id="quest-progress-text">0 / 0 XP</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <!-- Today's Habits -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <h2 class="text-lg font-semibold mb-4 text-gray-800">Привычки на сегодня</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <!-- Block 1: Shared Habits -->
+            <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
+                <h2 class="text-lg font-semibold mb-3 text-gray-800">Общие привычки</h2>
+                <div id="family-shared-habits" class="space-y-3">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <!-- Shared habits will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Block 2: Baby News -->
+            <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
+                <h2 class="text-lg font-semibold mb-3 text-gray-800">Новости сына</h2>
+                <div id="family-baby-news" class="space-y-3">
+                    <!-- Baby news will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Block 3: Public Habits - Dad and Mom -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="bg-white rounded-xl p-4 shadow-sm">
+                    <h2 class="text-lg font-semibold mb-3 text-gray-800">Папа</h2>
+                    <div id="family-dad-public-habits" class="space-y-3">
+                        <!-- Dad's public habits will be loaded here -->
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-sm">
+                    <h2 class="text-lg font-semibold mb-3 text-gray-800">Мама</h2>
+                    <div id="family-mom-public-habits" class="space-y-3">
+                        <!-- Mom's public habits will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <!-- Personal Tab -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <div id="personal-tab" class="tab-content hidden">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <div class="bg-white rounded-xl p-4 shadow-sm mb-4">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
+                <h2 class="text-lg font-semibold mb-3 text-gray-800">Мои привычки</h2>
+                <div id="personal-habits-list" class="space-y-3">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    + Добавить событие
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <div id="baby-events-list" class="space-y-3">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <!-- Personal habits will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Baby Tab -->
+        <div id="baby-tab" class="tab-content hidden">
+            <div class="bg-white rounded-xl p-4 shadow-sm mb-4">
+                <button id="add-event-btn" class="w-full py-3 btn-gradient text-white font-semibold text-lg mb-4">
+                    + Добавить событие
+                </button>
+            </div>
+            <div id="baby-events-list" class="space-y-3">
+                <!-- Events will be loaded here -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <!-- Settings Tab -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <div id="baby-tab" class="tab-content hidden">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <div class="bg-white rounded-xl p-4 shadow-sm mb-4">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <h2 class="text-lg font-semibold mb-4 text-gray-800">Статистика</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <div id="user-stats" class="space-y-2">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <!-- Stats will be loaded here -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <div class="bg-white rounded-xl p-4 shadow-sm mb-4">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <h2 class="text-lg font-semibold mb-4 text-gray-800">Экспорт</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <button id="export-btn" class="w-full py-3 btn-gradient text-white font-semibold">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    📥 Скачать дневник
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <div class="flex items-center justify-between mb-4">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <h2 class="text-lg font-semibold text-gray-800">Все привычки</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <button id="add-habit-btn" class="px-4 py-2 btn-gradient text-white font-semibold text-sm">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        + Добавить
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <div id="all-habits-list" class="space-y-3">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <!-- All habits will be loaded here -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- Add Event Modal -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="add-event-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <div class="bg-white rounded-xl p-6 w-full max-w-md">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <h3 class="text-xl font-semibold mb-4">Добавить событие</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <form id="add-event-form">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <div class="mb-4">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <label class="block text-sm font-medium mb-2">Тип события</label>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <select id="event-type" class="w-full p-3 border rounded-lg">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        <option value="food">🍎 Еда</option>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        <option value="skill">🎯 Навык</option>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        <option value="note">📝 Заметка</option>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    </select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <div class="mb-4">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <label class="block text-sm font-medium mb-2">Описание</label>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <textarea id="event-content" class="w-full p-3 border rounded-lg h-24" placeholder="Опишите событие..."></textarea>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <div class="flex space-x-3">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <button type="button" id="cancel-event-btn" class="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        Отмена
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <button type="submit" class="flex-1 py-3 btn-gradient text-white font-semibold">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        Сохранить
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            </form>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- Add/Edit Habit Modal -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="habit-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <div class="bg-white rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <h3 id="habit-modal-title" class="text-xl font-semibold mb-4">Добавить привычку</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <form id="habit-form">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <input type="hidden" id="habit-id" value="">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <div class="mb-4">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <label class="block text-sm font-medium mb-2">Название</label>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <input type="text" id="habit-name" class="w-full p-3 border rounded-lg" placeholder="Например: Утренняя зарядка" required>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <div class="mb-4">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <label class="block text-sm font-medium mb-2">Тип привычки</label>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <select id="habit-type" class="w-full p-3 border rounded-lg" required>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        <option value="boolean">Да/Нет</option>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        <option value="scale">Шкала 1-5</option>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        <option value="quantity">Количество</option>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        <option value="checklist">Чек-лист</option>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    </select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <div class="mb-4">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <label class="block text-sm font-medium mb-2">Расписание</label>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <select id="habit-schedule" class="w-full p-3 border rounded-lg" required>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        <option value="daily">Ежедневно</option>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        <option value="weekly">Еженедельно</option>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        <option value="custom">Произвольное</option>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    </select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <div class="mb-4">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <label class="block text-sm font-medium mb-2">Приватность</label>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <select id="habit-privacy" class="w-full p-3 border rounded-lg" required>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        <option value="personal">Личная</option>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        <option value="public">Публичная</option>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        <option value="shared">Общая</option>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    </select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <div class="mb-4">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <label class="block text-sm font-medium mb-2">XP награда</label>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <input type="number" id="habit-xp" class="w-full p-3 border rounded-lg" value="10" min="1" max="100" required>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <div class="flex space-x-3">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <button type="button" id="cancel-habit-btn" class="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        Отмена
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <button type="submit" class="flex-1 py-3 btn-gradient text-white font-semibold">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        Сохранить
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            </form>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- Invite Family Member Modal -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="invite-member-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <div class="bg-white rounded-xl p-6 w-full max-w-md">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <h3 class="text-xl font-semibold mb-4">Р”РѕР±Р°РІРёС‚СЊ С‡Р»РµРЅР° СЃРµРјСЊРё</h3>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <form id="invite-member-form">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <div class="mb-4">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <label class="block text-sm font-medium mb-2">Username (без @)</label>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <input type="text" id="invite-username" class="w-full p-3 border rounded-lg" placeholder="username">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <div class="mb-4">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <p class="text-xs text-gray-500 mb-2">или</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <label class="block text-sm font-medium mb-2">Telegram ID</label>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <input type="text" id="invite-telegram-id" class="w-full p-3 border rounded-lg" placeholder="123456789">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                <div class="flex space-x-3">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <button type="button" id="cancel-invite-btn" class="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        Отмена
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <button type="submit" class="flex-1 py-3 btn-gradient text-white font-semibold">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        Пригласить
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            </form>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- Loading Overlay -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="loading" class="hidden fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <div class="bg-white rounded-xl p-6">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <p class="mt-4 text-center text-gray-600">Загрузка...</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- Scripts -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <script src="js/api.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <script src="js/app.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <script src="js/habits.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <script src="js/baby.js"></script>
+    <script src="js/family.js"></script>
+    <script src="js/personal.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <script src="js/gamification.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <script src="js/settings.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- Settings Icon (Fixed Bottom Right) -->
+    <button id="settings-icon-btn" class="fixed bottom-6 right-6 w-14 h-14 bg-gradient-default rounded-full shadow-lg flex items-center justify-center text-white text-2xl hover:scale-110 transition-transform z-40">
+        ⚙️
+    </button>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center" style="display: none;">
+        <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">Настройки</h2>
+                <button id="close-settings-btn" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div id="settings-content">
+                <!-- Settings content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Settings modal handlers
+        document.getElementById('settings-icon-btn')?.addEventListener('click', () => {
+            const modal = document.getElementById('settings-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                if (typeof Settings !== 'undefined') {
+                    Settings.loadSettings();
+                }
+            }
+        });
+        
+        document.getElementById('close-settings-btn')?.addEventListener('click', () => {
+            const modal = document.getElementById('settings-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        });
+        
+        // Close modal on background click
+        document.getElementById('settings-modal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'settings-modal') {
+                e.target.style.display = 'none';
+            }
+        });
+    </script>
+
+</body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

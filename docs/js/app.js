@@ -48,13 +48,16 @@ const App = {
         this.currentTab = tabName;
         
         // Load tab-specific data
-        if (tabName === 'dashboard') {
-            Habits.loadTodayHabits();
-            Gamification.loadStats();
+        if (tabName === 'family') {
+            if (typeof Family !== 'undefined') {
+                Family.loadFamilyPage();
+            }
+        } else if (tabName === 'personal') {
+            if (typeof Personal !== 'undefined') {
+                Personal.loadPersonalHabits();
+            }
         } else if (tabName === 'baby') {
             Baby.loadEvents();
-        } else if (tabName === 'settings') {
-            Settings.loadSettings();
         }
     },
     

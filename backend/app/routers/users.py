@@ -1,7 +1,7 @@
 """User authentication and management endpoints."""
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, List
 import os
 from uuid import UUID
 
@@ -163,3 +163,19 @@ async def invite_user_to_family(
     db.refresh(user)
     
     return UserResponse.model_validate(user)
+
+
+@router.get("/family/members", response_model=List[UserResponse])
+async def get_family_members(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all members of the current user's family."""
+    if not current_user.family_id:
+        return []
+    
+    members = db.query(User).filter(
+        User.family_id == current_user.family_id
+    ).all()
+    
+    return [UserResponse.model_validate(m) for m in members]

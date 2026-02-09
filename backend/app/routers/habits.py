@@ -227,3 +227,103 @@ async def complete_habit(
         response_data["family_xp_amount"] = habit.xp_reward
     
     return HabitLogResponse(**response_data)
+
+
+@router.get("/shared", response_model=List[HabitResponse])
+async def get_shared_habits(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get shared habits for the family."""
+    habits = db.query(Habit).filter(
+        Habit.family_id == current_user.family_id,
+        Habit.privacy == PrivacyType.SHARED,
+        Habit.is_active == True
+    ).all()
+    
+    return [HabitResponse.model_validate(h) for h in habits]
+
+
+@router.get("/public/{user_id}", response_model=List[HabitResponse])
+async def get_public_habits(
+    user_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get public habits for a specific user."""
+    # Check that user belongs to the same family
+    target_user = db.query(User).filter(User.id == user_id).first()
+    if not target_user or target_user.family_id != current_user.family_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    habits = db.query(Habit).filter(
+        Habit.family_id == current_user.family_id,
+        Habit.owner_id == user_id,
+        Habit.privacy == PrivacyType.PUBLIC,
+        Habit.is_active == True
+    ).all()
+    
+    return [HabitResponse.model_validate(h) for h in habits]
+
+
+@router.get("/personal", response_model=List[HabitResponse])
+async def get_personal_habits(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all habits accessible to current user (shared, public, and personal)."""
+    habits = db.query(Habit).filter(
+        Habit.family_id == current_user.family_id,
+        Habit.is_active == True
+    ).all()
+    
+    # Filter by privacy - include shared, public, and user's personal habits
+    accessible_habits = [
+        h for h in habits 
+        if h.privacy != PrivacyType.PERSONAL or h.owner_id == current_user.id
+    ]
+    
+    return [HabitResponse.model_validate(h) for h in accessible_habits]
+
+
+@router.get("/{habit_id}/logs", response_model=List[HabitLogResponse])
+async def get_habit_logs(
+    habit_id: UUID,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    user_id: Optional[UUID] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get habit logs for a date range."""
+    habit = db.query(Habit).filter(Habit.id == habit_id).first()
+    if not habit:
+        raise HTTPException(status_code=404, detail="Habit not found")
+    
+    # Check access
+    if not check_habit_access(habit, current_user):
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Set default date range (last 7 days if not specified)
+    if not start_date:
+        start_date = date.today() - timedelta(days=7)
+    if not end_date:
+        end_date = date.today()
+    
+    query = db.query(HabitLog).filter(
+        HabitLog.habit_id == habit_id,
+        HabitLog.date >= start_date,
+        HabitLog.date <= end_date
+    )
+    
+    # Filter by user if specified
+    if user_id:
+        # Check that user belongs to the same family
+        target_user = db.query(User).filter(User.id == user_id).first()
+        if not target_user or target_user.family_id != current_user.family_id:
+            raise HTTPException(status_code=403, detail="Access denied")
+        query = query.filter(HabitLog.user_id == user_id)
+    
+    logs = query.order_by(HabitLog.date.desc()).all()
+    
+    return [HabitLogResponse.model_validate(log) for log in logs]

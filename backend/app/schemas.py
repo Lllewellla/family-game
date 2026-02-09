@@ -47,6 +47,7 @@ class HabitBase(BaseModel):
     schedule_config: Optional[Dict[str, Any]] = None
     privacy: PrivacyType
     xp_reward: int = 10
+    target_value: Optional[Dict[str, Any]] = None
 
 
 class HabitCreate(HabitBase):
@@ -59,6 +60,7 @@ class HabitUpdate(BaseModel):
     schedule_config: Optional[Dict[str, Any]] = None
     privacy: Optional[PrivacyType] = None
     xp_reward: Optional[int] = None
+    target_value: Optional[Dict[str, Any]] = None
     is_active: Optional[bool] = None
 
 

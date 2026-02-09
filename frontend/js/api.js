@@ -99,6 +99,30 @@ const API = {
         return this.request('/api/habits/today');
     },
     
+    async getSharedHabits() {
+        return this.request('/api/habits/shared');
+    },
+    
+    async getPublicHabits(userId) {
+        return this.request(`/api/habits/public/${userId}`);
+    },
+    
+    async getPersonalHabits() {
+        return this.request('/api/habits/personal');
+    },
+    
+    async getHabitLogs(habitId, startDate, endDate, userId = null) {
+        const params = new URLSearchParams();
+        if (startDate) params.append('start_date', startDate);
+        if (endDate) params.append('end_date', endDate);
+        if (userId) params.append('user_id', userId);
+        return this.request(`/api/habits/${habitId}/logs?${params}`);
+    },
+    
+    async getFamilyMembers() {
+        return this.request('/api/users/family/members');
+    },
+    
     async createHabit(habitData) {
         return this.request('/api/habits', {
             method: 'POST',
