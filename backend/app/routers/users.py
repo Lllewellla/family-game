@@ -118,16 +118,28 @@ async def get_current_user_info(
 
 
 @router.get("/users/family", response_model=list[UserResponse])
+async def get_family(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get all family members (legacy path)."""
+    if not current_user.family_id:
+        return []
+    family_members = db.query(User).filter(User.family_id == current_user.family_id).all()
+    return [UserResponse.model_validate(member) for member in family_members]
+
+
+@router.get("/users/family/members", response_model=List[UserResponse])
 async def get_family_members(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get all family members."""
+    """Get all members of the current user's family."""
     if not current_user.family_id:
         return []
-    
-    family_members = db.query(User).filter(User.family_id == current_user.family_id).all()
-    return [UserResponse.model_validate(member) for member in family_members]
+    members = db.query(User).filter(User.family_id == current_user.family_id).all()
+    return [UserResponse.model_validate(m) for m in members]
+
 
 @router.post("/users/family/invite", response_model=UserResponse)
 async def invite_user_to_family(
