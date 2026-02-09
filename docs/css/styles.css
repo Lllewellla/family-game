@@ -1,0 +1,127 @@
+/* Custom styles for FamilyQuest */
+
+/* Large touch-friendly buttons */
+.btn-large {
+    min-height: 48px;
+    font-size: 16px;
+    padding: 12px 24px;
+}
+
+/* Tab active state */
+.tab-btn.active {
+    background: linear-gradient(135deg, #fb923c 0%, #ec4899 100%);
+    color: white;
+}
+
+.tab-btn:not(.active) {
+    color: #6b7280;
+}
+
+.tab-btn:not(.active):hover {
+    background-color: #f3f4f6;
+}
+
+/* Habit item styles */
+.habit-item {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.habit-item:active {
+    transform: scale(0.98);
+}
+
+/* Avatar styles */
+.avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(135deg, #fb923c 0%, #ec4899 100%);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* XP animation */
+.xp-gain {
+    animation: xpPop 0.5s ease-out;
+}
+
+@keyframes xpPop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Modal styles */
+.modal {
+    backdrop-filter: blur(4px);
+}
+
+/* Smooth transitions */
+* {
+    transition: background-color 0.2s, color 0.2s;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #fb923c;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #f97316;
+}
+
+/* Loading spinner */
+.spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #fb923c;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Event card styles */
+.event-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s;
+}
+
+.event-card:active {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Progress bar animation */
+.progress-bar {
+    transition: width 0.5s ease-out;
+}
