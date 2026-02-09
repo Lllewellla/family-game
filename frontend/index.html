@@ -88,7 +88,12 @@
             </div>
 
             <div class="bg-white rounded-xl p-4 shadow-sm">
-                <h2 class="text-lg font-semibold mb-4 text-gray-800">Все привычки</h2>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-800">Все привычки</h2>
+                    <button id="add-habit-btn" class="px-4 py-2 bg-gradient-to-r from-orange-400 to-pink-400 text-white rounded-lg font-semibold text-sm shadow-md active:scale-95 transition-transform">
+                        + Добавить
+                    </button>
+                </div>
                 <div id="all-habits-list" class="space-y-3">
                     <!-- All habits will be loaded here -->
                 </div>
@@ -115,6 +120,57 @@
                 </div>
                 <div class="flex space-x-3">
                     <button type="button" id="cancel-event-btn" class="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold">
+                        Отмена
+                    </button>
+                    <button type="submit" class="flex-1 py-3 bg-gradient-to-r from-orange-400 to-pink-400 text-white rounded-lg font-semibold">
+                        Сохранить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add/Edit Habit Modal -->
+    <div id="habit-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h3 id="habit-modal-title" class="text-xl font-semibold mb-4">Добавить привычку</h3>
+            <form id="habit-form">
+                <input type="hidden" id="habit-id" value="">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Название</label>
+                    <input type="text" id="habit-name" class="w-full p-3 border rounded-lg" placeholder="Например: Утренняя зарядка" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Тип привычки</label>
+                    <select id="habit-type" class="w-full p-3 border rounded-lg" required>
+                        <option value="boolean">Да/Нет</option>
+                        <option value="scale">Шкала 1-5</option>
+                        <option value="quantity">Количество</option>
+                        <option value="checklist">Чек-лист</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Расписание</label>
+                    <select id="habit-schedule" class="w-full p-3 border rounded-lg" required>
+                        <option value="daily">Ежедневно</option>
+                        <option value="weekly">Еженедельно</option>
+                        <option value="custom">Произвольное</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Приватность</label>
+                    <select id="habit-privacy" class="w-full p-3 border rounded-lg" required>
+                        <option value="personal">Личная</option>
+                        <option value="public">Публичная</option>
+                        <option value="shared">Общая</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">XP награда</label>
+                    <input type="number" id="habit-xp" class="w-full p-3 border rounded-lg" value="10" min="1" max="100" required>
+                </div>
+                <div class="flex space-x-3">
+                    <button type="button" id="cancel-habit-btn" class="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold">
                         Отмена
                     </button>
                     <button type="submit" class="flex-1 py-3 bg-gradient-to-r from-orange-400 to-pink-400 text-white rounded-lg font-semibold">
