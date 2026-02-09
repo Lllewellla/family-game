@@ -1,7 +1,7 @@
 /** Main application logic */
 const App = {
     currentUser: null,
-    currentTab: 'dashboard',
+    currentTab: 'family',
     
     init() {
         // #region agent log
@@ -168,13 +168,9 @@ const App = {
                 userNameEl.textContent = `Привет, ${this.currentUser.first_name || this.currentUser.username || 'Пользователь'}!`;
             }
             
-            // Load dashboard data
             await Habits.loadTodayHabits();
             await Gamification.loadStats();
-            
-            // #region agent log
-            // #endregion
-            
+            this.switchTab('family');
         } catch (error) {
             // #region agent log
             // #endregion

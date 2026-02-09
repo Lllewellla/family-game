@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from datetime import date
+from datetime import date, timedelta
 from uuid import UUID
 
 from ..database import get_db
@@ -55,18 +55,30 @@ async def get_family_quest(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get current active family quest."""
+    """Get current active family quest. Auto-creates one if missing."""
     if not current_user.family_id:
         raise HTTPException(status_code=400, detail="User must belong to a family")
     
+    today = date.today()
     quest = db.query(FamilyQuest).filter(
         FamilyQuest.family_id == current_user.family_id,
         FamilyQuest.is_completed == False,
-        FamilyQuest.end_date >= date.today()
+        FamilyQuest.end_date >= today
     ).order_by(FamilyQuest.created_at.desc()).first()
     
     if not quest:
-        raise HTTPException(status_code=404, detail="No active family quest")
+        quest = FamilyQuest(
+            family_id=current_user.family_id,
+            name="Семейная неделя",
+            target_xp=500,
+            current_xp=0,
+            start_date=today,
+            end_date=today + timedelta(days=7),
+            is_completed=False,
+        )
+        db.add(quest)
+        db.commit()
+        db.refresh(quest)
     
     return FamilyQuestResponse.model_validate(quest)
 
