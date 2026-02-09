@@ -11,7 +11,7 @@
 // Example:
 // window.BACKEND_URL = 'https://family-quest-backend.up.railway.app';
 
-window.BACKEND_URL = 'https://your-app.railway.app';
+window.BACKEND_URL = 'https://family-game-production.up.railway.app';
 
 // If BACKEND_URL is not set, the app will try to use the default
 // Make sure to update this before deploying!
