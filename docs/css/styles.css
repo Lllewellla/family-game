@@ -1,5 +1,34 @@
 /* Custom styles for FamilyQuest */
 
+/* Standard gradient colors from design */
+:root {
+    --gradient-orange: #FF8042;
+    --gradient-pink: #FF5CA0;
+    --border-radius-default: 12px;
+}
+
+/* Standard gradient button style - default design */
+.btn-gradient,
+.bg-gradient-default {
+    background: linear-gradient(to right, var(--gradient-orange), var(--gradient-pink));
+    color: white;
+    border-radius: var(--border-radius-default);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-gradient:hover,
+.bg-gradient-default:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+}
+
+.btn-gradient:active,
+.bg-gradient-default:active {
+    transform: scale(0.98);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
 /* Large touch-friendly buttons */
 .btn-large {
     min-height: 48px;
@@ -9,8 +38,9 @@
 
 /* Tab active state */
 .tab-btn.active {
-    background: linear-gradient(135deg, #fb923c 0%, #ec4899 100%);
+    background: linear-gradient(to right, var(--gradient-orange), var(--gradient-pink));
     color: white;
+    border-radius: 8px;
 }
 
 .tab-btn:not(.active) {
@@ -41,8 +71,15 @@
     font-size: 24px;
     font-weight: bold;
     color: white;
-    background: linear-gradient(135deg, #fb923c 0%, #ec4899 100%);
+    background: linear-gradient(to right, var(--gradient-orange), var(--gradient-pink));
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Compact avatars for header */
+.avatar.w-10 {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
 }
 
 /* XP animation */
@@ -85,18 +122,18 @@
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #fb923c;
+    background: var(--gradient-orange);
     border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #f97316;
+    background: var(--gradient-pink);
 }
 
 /* Loading spinner */
 .spinner {
     border: 3px solid #f3f3f3;
-    border-top: 3px solid #fb923c;
+    border-top: 3px solid var(--gradient-orange);
     border-radius: 50%;
     width: 40px;
     height: 40px;
@@ -111,7 +148,7 @@
 /* Event card styles */
 .event-card {
     background: white;
-    border-radius: 12px;
+    border-radius: var(--border-radius-default);
     padding: 16px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     transition: box-shadow 0.2s;
@@ -124,4 +161,17 @@
 /* Progress bar animation */
 .progress-bar {
     transition: width 0.5s ease-out;
+}
+
+/* Standard rounded corners for cards and containers */
+.card-default {
+    border-radius: var(--border-radius-default);
+}
+
+/* Gradient text (if needed) */
+.text-gradient {
+    background: linear-gradient(to right, var(--gradient-orange), var(--gradient-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }

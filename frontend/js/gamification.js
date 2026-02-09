@@ -29,92 +29,78 @@ const Gamification = {
     },
     
     renderStats(stats) {
-    
-    async loadFamilyStats() {
-        try {
-            const stats = await API.getFamilyStats();
-            this.renderFamilyStats(stats);
-        } catch (error) {
-            console.error('Failed to load family stats:', error);
-            // Hide family stats if user doesn't belong to a family
-            const familyStatsEl = document.getElementById('family-stats');
-            if (familyStatsEl) {
-                familyStatsEl.classList.add('hidden');
-            }
-        }
-    },
-    
-    renderFamilyStats(stats) {
-        const levelEl = document.getElementById('family-level');
-        const totalXpEl = document.getElementById('family-total-xp');
-        const xpNextEl = document.getElementById('family-xp-next');
-        
-        if (levelEl) levelEl.textContent = stats.level;
-        if (totalXpEl) totalXpEl.textContent = stats.total_xp;
-        if (xpNextEl) xpNextEl.textContent = ${stats.xp_for_next_level} XP;
-    },
-
         // Update user stats in settings
         const statsContainer = document.getElementById('user-stats');
         if (statsContainer) {
-            statsContainer.innerHTML = 
+            statsContainer.innerHTML = `
                 <div class="flex justify-between items-center py-2">
-                    <span class="text-gray-600">РЈСЂРѕРІРµРЅСЊ</span>
-                    <span class="text-2xl font-bold text-orange-600"></span>
+                    <span class="text-gray-600">Уровень</span>
+                    <span class="text-2xl font-bold text-orange-600">${stats.level}</span>
                 </div>
                 <div class="flex justify-between items-center py-2">
-                    <span class="text-gray-600">Р’СЃРµРіРѕ XP</span>
-                    <span class="text-xl font-semibold text-gray-800"></span>
+                    <span class="text-gray-600">Всего XP</span>
+                    <span class="text-xl font-semibold text-gray-800">${stats.total_xp}</span>
                 </div>
                 <div class="flex justify-between items-center py-2">
-                    <span class="text-gray-600">Р”Рѕ СЃР»РµРґСѓСЋС‰РµРіРѕ СѓСЂРѕРІРЅСЏ</span>
-                    <span class="text-lg font-semibold text-gray-700"> XP</span>
+                    <span class="text-gray-600">До следующего уровня</span>
+                    <span class="text-lg font-semibold text-gray-700">${stats.xp_for_next_level} XP</span>
                 </div>
-            ;
+            `;
         }
         
         // Load family avatars
         this.loadFamilyMembers();
         
-        // Load family stats
-        this.loadFamilyStats();
+        // Load family stats (no longer needed, but keep for compatibility)
+    },
+    
+    async loadFamilyStats() {
+        // Family stats block removed, this method kept for compatibility
+    },
+    
+    renderFamilyStats(stats) {
+        // Family stats block removed, this method kept for compatibility
     },
     
     renderFamilyAvatars(members) {
         const container = document.getElementById('avatars-container');
         if (!container) return;
         
-        const isAdmin = App.currentUser && App.currentUser.role === 'admin';
+        // Ограничиваем до 3 членов семьи: Егор, Ирина, Миша
+        // Фильтруем и сортируем по имени
+        const familyMembers = members
+            .filter(member => {
+                const name = (member.first_name || member.username || '').toLowerCase();
+                return name.includes('егор') || name.includes('ирина') || name.includes('миша');
+            })
+            .slice(0, 3);
         
-        let html = members.map(member => 
-            <div class="flex flex-col items-center">
-                <div class="avatar mb-2">
-                    
-                </div>
-                <p class="text-xs font-semibold text-gray-700"></p>
-                <p class="text-xs text-gray-500">Lv.</p>
-            </div>
-        ).join('');
+        // Сортируем: Егор, Ирина, Миша
+        const sortedMembers = familyMembers.sort((a, b) => {
+            const nameA = (a.first_name || a.username || '').toLowerCase();
+            const nameB = (b.first_name || b.username || '').toLowerCase();
+            const order = ['егор', 'ирина', 'миша'];
+            const indexA = order.findIndex(o => nameA.includes(o));
+            const indexB = order.findIndex(o => nameB.includes(o));
+            return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+        });
         
-        if (isAdmin) {
-            html += 
-                <div class="flex flex-col items-center">
-                    <button id="add-family-member-btn" class="avatar mb-2 bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center text-gray-600 text-xl">
-                        +
-                    </button>
-                    <p class="text-xs font-semibold text-gray-700">Р”РѕР±Р°РІРёС‚СЊ</p>
+        // Отображаем только аватары без текста (компактный вид для header)
+        let html = sortedMembers.map(member => {
+            const name = member.first_name || member.username || '?';
+            const initial = name.charAt(0).toUpperCase();
+            const level = member.level || 1;
+            
+            return `
+                <div class="flex flex-col items-center" title="${name} (Lv.${level})">
+                    <div class="avatar w-10 h-10 text-sm">
+                        ${initial}
+                    </div>
                 </div>
-            ;
-        }
+            `;
+        }).join('');
         
         container.innerHTML = html;
-        
-        if (isAdmin) {
-            const addBtn = document.getElementById('add-family-member-btn');
-            if (addBtn) {
-                addBtn.addEventListener('click', () => this.openInviteModal());
-            }
-        }
     },
     
     openInviteModal() {
@@ -137,19 +123,19 @@ const Gamification = {
         const telegramId = document.getElementById('invite-telegram-id').value.trim();
         
         if (!username && !telegramId) {
-            App.showError('РџРѕР¶Р°Р»СѓР№СЃС‚Р°, РІРІРµРґРёС‚Рµ username РёР»Рё Telegram ID');
+            App.showError('Пожалуйста, введите username или Telegram ID');
             return;
         }
         
         try {
             App.showLoading();
             await API.inviteUserToFamily(telegramId || null, username || null);
-            App.showSuccess('РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РґРѕР±Р°РІР»РµРЅ РІ СЃРµРјСЊСЋ!');
+            App.showSuccess('Пользователь добавлен в семью!');
             this.closeInviteModal();
             await this.loadFamilyMembers();
         } catch (error) {
             console.error('Failed to invite member:', error);
-            App.showError(error.message || 'РќРµ СѓРґР°Р»РѕСЃСЊ РґРѕР±Р°РІРёС‚СЊ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ');
+            App.showError(error.message || 'Не удалось добавить пользователя');
         } finally {
             App.hideLoading();
         }
@@ -172,19 +158,19 @@ const Gamification = {
             : 0;
         
         if (progressBar) {
-            progressBar.style.width = ${progressPercent}%;
+            progressBar.style.width = `${progressPercent}%`;
         }
         
         if (progressText) {
-            progressText.textContent = ${quest.current_xp} /  XP;
+            progressText.textContent = `${quest.current_xp} / ${quest.target_xp} XP`;
         }
     },
     
     showXPGain(amount, prefix = "") {
         // Create floating XP indicator
         const xpIndicator = document.createElement('div');
-        xpIndicator.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg font-bold text-xl z-50 xp-gain';
-        xpIndicator.textContent = prefix ? ${prefix} + XP : + XP;
+        xpIndicator.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg font-bold text-xl z-50 xp-gain';
+        xpIndicator.textContent = prefix ? `${prefix} +${amount} XP` : `+${amount} XP`;
         
         document.body.appendChild(xpIndicator);
         

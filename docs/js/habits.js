@@ -31,7 +31,7 @@ const Habits = {
         const isCompleted = false; // TODO: Check if completed today
         
         return `
-            <div class="habit-item bg-gray-50 rounded-lg p-4 ${isCompleted ? 'opacity-60' : ''}" data-habit-id="${habit.id}">
+            <div class="habit-item bg-gray-50 rounded-xl p-4 ${isCompleted ? 'opacity-60' : ''}" data-habit-id="${habit.id}">
                 <div class="flex items-center justify-between">
                     <div class="flex-1">
                         <h3 class="font-semibold text-gray-800 mb-1">${this.escapeHtml(habit.name)}</h3>
@@ -70,7 +70,7 @@ const Habits = {
                 `;
             case 'checklist':
                 return `
-                    <button class="checklist-btn px-4 py-2 bg-orange-500 text-white rounded-lg font-semibold">
+                    <button class="checklist-btn px-4 py-2 btn-gradient text-white font-semibold">
                         Открыть
                     </button>
                 `;
@@ -140,38 +140,17 @@ const Habits = {
             // Show family XP notification if awarded
             if (result.family_xp_awarded && result.family_xp_amount) {
                 setTimeout(() => {
-                    Gamification.showXPGain(result.family_xp_amount, 'РЎРµРјСЊСЏ РїРѕР»СѓС‡РёР»Р°');
+                    Gamification.showXPGain(result.family_xp_amount, 'Семья получила');
                 }, 500);
-                App.showSuccess(+ XP! РЎРµРјСЊСЏ РїРѕР»СѓС‡РёР»Р° + XP!);
+                App.showSuccess(`+${result.xp_earned} XP! Семья получила +${result.family_xp_amount} XP!`);
             } else {
-                App.showSuccess(+ XP!);
+                App.showSuccess(`+${result.xp_earned} XP!`);
             }
             
             // Reload habits and stats
             await this.loadTodayHabits();
             await Gamification.loadStats();
             await Gamification.loadFamilyStats();
-        } catch (error) {
-            console.error('Failed to complete habit:', error);
-            App.showError('РќРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РјРµС‚РёС‚СЊ РїСЂРёРІС‹С‡РєСѓ');
-        } finally {
-            App.hideLoading();
-        }
-    }
-        try {
-            App.showLoading();
-            const result = await API.completeHabit(habitId, value);
-            
-            // Show XP gain animation
-            if (result.xp_earned) {
-                Gamification.showXPGain(result.xp_earned);
-            }
-            
-            // Reload habits and stats
-            await this.loadTodayHabits();
-            await Gamification.loadStats();
-            
-            App.showSuccess(`+${result.xp_earned} XP!`);
         } catch (error) {
             console.error('Failed to complete habit:', error);
             App.showError('Не удалось отметить привычку');
