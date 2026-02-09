@@ -36,6 +36,14 @@
     padding: 12px 24px;
 }
 
+/* Tab panels: ensure visible tab is shown, hidden ones are not */
+.tab-content.hidden {
+    display: none !important;
+}
+.tab-content:not(.hidden) {
+    display: block !important;
+}
+
 /* Tab active state */
 .tab-btn.active {
     background: linear-gradient(to right, var(--gradient-orange), var(--gradient-pink));

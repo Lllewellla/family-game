@@ -54,11 +54,17 @@ const App = {
             btn.classList.toggle('active', btn.dataset.tab === tabName);
         });
         
-        // Update content
+        // Update content: show active tab with block, hide others with hidden
         document.querySelectorAll('.tab-content').forEach(content => {
             const expectedId = `${tabName}-tab`;
             const isActive = content.id === expectedId;
-            content.classList.toggle('hidden', !isActive);
+            if (isActive) {
+                content.classList.remove('hidden');
+                content.classList.add('block');
+            } else {
+                content.classList.add('hidden');
+                content.classList.remove('block');
+            }
             // #region agent log
             if (isActive) {
                 App.addDebugLog('INFO', `Showing tab: ${expectedId}`, {contentId: content.id, isHidden: content.classList.contains('hidden')});
