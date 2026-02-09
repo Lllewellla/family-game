@@ -3,6 +3,12 @@ const Habits = {
     async loadTodayHabits() {
         try {
             const habits = await API.getTodayHabits();
+            // Проверяем, что habits определен перед использованием
+            if (habits === undefined || habits === null) {
+                console.error('Habits is undefined or null');
+                App.showError('Не удалось загрузить привычки');
+                return;
+            }
             this.renderHabits(habits);
         } catch (error) {
             console.error('Failed to load habits:', error);
@@ -13,6 +19,13 @@ const Habits = {
     renderHabits(habits) {
         const container = document.getElementById('habits-list');
         if (!container) return;
+        
+        // Проверяем, что habits определен и является массивом
+        if (!habits || !Array.isArray(habits)) {
+            console.error('Habits is not defined or not an array:', habits);
+            container.innerHTML = '<p class="text-gray-500 text-center py-8">Ошибка загрузки привычек</p>';
+            return;
+        }
         
         if (habits.length === 0) {
             container.innerHTML = '<p class="text-gray-500 text-center py-8">Нет привычек на сегодня</p>';
