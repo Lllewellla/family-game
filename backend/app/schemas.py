@@ -1,5 +1,5 @@
 """Pydantic schemas for request/response validation."""
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from datetime import date, datetime
 from uuid import UUID
@@ -7,20 +7,13 @@ from uuid import UUID
 from .models import HabitType, ScheduleType, PrivacyType, BabyEventType, UserRole
 
 
-# User Schemas
-class UserBase(BaseModel):
+# User
+class UserResponse(BaseModel):
+    id: UUID
     telegram_id: str
     username: Optional[str] = None
     first_name: Optional[str] = None
-    role: UserRole = UserRole.PARTICIPANT
-
-
-class UserCreate(UserBase):
-    family_id: Optional[UUID] = None
-
-
-class UserResponse(UserBase):
-    id: UUID
+    role: UserRole
     level: int
     total_xp: int
     family_id: Optional[UUID] = None
@@ -39,7 +32,17 @@ class JoinFamilyRequest(BaseModel):
     family_id: UUID
 
 
-# Habit Schemas
+# Auth
+class TelegramAuth(BaseModel):
+    init_data: str
+
+
+class AuthResponse(BaseModel):
+    user: UserResponse
+    token: Optional[str] = None
+
+
+# Habit
 class HabitBase(BaseModel):
     name: str
     type: HabitType
@@ -75,9 +78,14 @@ class HabitResponse(HabitBase):
         from_attributes = True
 
 
-# HabitLog Schemas
 class HabitLogCreate(BaseModel):
     habit_id: UUID
+    date: date
+    value: Optional[Dict[str, Any]] = None
+
+
+class HabitCompleteBody(BaseModel):
+    """Body for POST /habits/{id}/complete: date and optional value."""
     date: date
     value: Optional[Dict[str, Any]] = None
 
@@ -97,17 +105,17 @@ class HabitLogResponse(BaseModel):
         from_attributes = True
 
 
-# BabyEvent Schemas
+# Baby (event_extra matches model column)
 class BabyEventCreate(BaseModel):
     event_type: BabyEventType
     content: str
-    metadata: Optional[Dict[str, Any]] = None
+    event_extra: Optional[Dict[str, Any]] = None
 
 
 class BabyEventUpdate(BaseModel):
     event_type: Optional[BabyEventType] = None
     content: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    event_extra: Optional[Dict[str, Any]] = None
 
 
 class BabyEventResponse(BaseModel):
@@ -115,7 +123,7 @@ class BabyEventResponse(BaseModel):
     family_id: UUID
     event_type: BabyEventType
     content: str
-    metadata: Optional[Dict[str, Any]] = None
+    event_extra: Optional[Dict[str, Any]] = None
     created_by: UUID
     created_at: datetime
 
@@ -123,7 +131,7 @@ class BabyEventResponse(BaseModel):
         from_attributes = True
 
 
-# FamilyQuest Schemas
+# FamilyQuest
 class FamilyQuestCreate(BaseModel):
     name: str
     target_xp: int
@@ -146,8 +154,7 @@ class FamilyQuestResponse(BaseModel):
         from_attributes = True
 
 
-# Gamification Schemas
-
+# Gamification
 class FamilyStatsResponse(BaseModel):
     level: int
     total_xp: int
@@ -164,17 +171,7 @@ class StatsResponse(BaseModel):
 
 class LeaderboardEntry(BaseModel):
     user_id: UUID
-    username: Optional[str]
-    first_name: Optional[str]
+    username: Optional[str] = None
+    first_name: Optional[str] = None
     level: int
     total_xp: int
-
-
-# Auth Schemas
-class TelegramAuth(BaseModel):
-    init_data: str
-
-
-class AuthResponse(BaseModel):
-    user: UserResponse
-    token: Optional[str] = None  # For future JWT if needed

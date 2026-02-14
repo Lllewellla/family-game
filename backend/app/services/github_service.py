@@ -1,125 +1,53 @@
-"""GitHub integration service for diary export."""
-import httpx
-import os
+"""GitHub diary export. Optional: skip if no token/repo."""
 import base64
-from datetime import date, datetime
+from datetime import date
 from typing import List
+
+import httpx
+from ..config import get_settings
 from ..models import BabyEvent
 
 
-def generate_markdown_diary(events: List[BabyEvent], start_date: date, end_date: date) -> str:
-    """Generate Markdown content from baby events."""
-    markdown = f"# Дневник развития малыша\n\n"
-    markdown += f"Период: {start_date.strftime('%d.%m.%Y')} - {end_date.strftime('%d.%m.%Y')}\n\n"
-    markdown += "---\n\n"
-    
-    # Group events by date
-    events_by_date = {}
-    for event in events:
-        event_date = event.created_at.date()
-        if event_date not in events_by_date:
-            events_by_date[event_date] = {
-                "food": [],
-                "skill": [],
-                "note": []
-            }
-        events_by_date[event_date][event.event_type.value].append(event)
-    
-    # Sort dates
-    sorted_dates = sorted(events_by_date.keys(), reverse=True)
-    
-    for event_date in sorted_dates:
-        markdown += f"## {event_date.strftime('%d.%m.%Y')}\n\n"
-        
-        date_events = events_by_date[event_date]
-        
-        # Food events
-        if date_events["food"]:
-            markdown += "### Еда\n"
-            for event in date_events["food"]:
-                markdown += f"- {event.content}\n"
-            markdown += "\n"
-        
-        # Skill events
-        if date_events["skill"]:
-            markdown += "### Навыки\n"
-            for event in date_events["skill"]:
-                markdown += f"- {event.content}\n"
-            markdown += "\n"
-        
-        # Notes
-        if date_events["note"]:
-            markdown += "### Заметки\n"
-            for event in date_events["note"]:
-                markdown += f"{event.content}\n\n"
-        
-        markdown += "---\n\n"
-    
-    return markdown
+def generate_markdown(events: List[BabyEvent], start: date, end: date) -> str:
+    by_date = {}
+    for e in events:
+        d = e.created_at.date()
+        if d not in by_date:
+            by_date[d] = {"food": [], "skill": [], "note": []}
+        by_date[d][e.event_type.value].append(e)
+    lines = [f"# Дневник развития малыша\n\nПериод: {start} — {end}\n\n---\n"]
+    for d in sorted(by_date.keys(), reverse=True):
+        lines.append(f"\n## {d}\n")
+        for kind in ("food", "skill", "note"):
+            items = by_date[d][kind]
+            if items:
+                lines.append(f"### {kind}\n")
+                for e in items:
+                    lines.append(f"- {e.content}\n")
+    return "\n".join(lines)
 
 
 async def commit_to_github(events: List[BabyEvent], event_date: date) -> dict:
-    """
-    Commit baby diary to GitHub repository.
-    
-    Returns:
-        Dictionary with commit info or None if failed
-    """
-    github_token = os.getenv("GITHUB_ACCESS_TOKEN")
-    github_repo = os.getenv("GITHUB_REPO")
-    
-    if not github_token or not github_repo:
-        raise ValueError("GitHub credentials not configured")
-    
-    # Generate markdown content
-    markdown_content = generate_markdown_diary(events, event_date, event_date)
-    
-    # Prepare file path: YYYY/MM/YYYY-MM-DD.md
-    year = event_date.strftime("%Y")
-    month = event_date.strftime("%m")
-    filename = f"{year}/{month}/{event_date.strftime('%Y-%m-%d')}.md"
-    
-    # Encode content
-    content_bytes = markdown_content.encode('utf-8')
-    content_base64 = base64.b64encode(content_bytes).decode('utf-8')
-    
-    # GitHub API URL
-    api_url = f"https://api.github.com/repos/{github_repo}/contents/{filename}"
-    
-    headers = {
-        "Authorization": f"token {github_token}",
-        "Accept": "application/vnd.github.v3+json"
-    }
-    
+    """Commit day's events to GitHub via Contents API. Raises ValueError if not configured."""
+    settings = get_settings()
+    if not settings.GITHUB_ACCESS_TOKEN or not settings.GITHUB_REPO:
+        raise ValueError("GitHub not configured")
+    content = generate_markdown(events, event_date, event_date)
+    path = f"{event_date.strftime('%Y')}/{event_date.strftime('%m')}/{event_date}.md"
     async with httpx.AsyncClient() as client:
-        # Check if file exists
-        try:
-            get_response = await client.get(api_url, headers=headers)
-            if get_response.status_code == 200:
-                # File exists, get SHA for update
-                existing_file = get_response.json()
-                sha = existing_file["sha"]
-                
-                # Update file
-                data = {
-                    "message": f"Update baby diary for {event_date.strftime('%Y-%m-%d')}",
-                    "content": content_base64,
-                    "sha": sha
-                }
-            else:
-                # File doesn't exist, create new
-                data = {
-                    "message": f"Add baby diary for {event_date.strftime('%Y-%m-%d')}",
-                    "content": content_base64
-                }
-            
-            # Create/update file
-            response = await client.put(api_url, headers=headers, json=data)
-            
-            if response.status_code in [200, 201]:
-                return response.json()
-            else:
-                raise Exception(f"GitHub API error: {response.status_code} - {response.text}")
-                
-        except httpx.HTTPError as e:
-            raise Exception(f"HTTP error: {str(e)}")
+        r = await client.put(
+            f"https://api.github.com/repos/{settings.GITHUB_REPO}/contents/{path}",
+            headers={
+                "Authorization": f"Bearer {settings.GITHUB_ACCESS_TOKEN}",
+                "Accept": "application/vnd.github.v3+json",
+            },
+            json={
+                "message": f"Diary {event_date}",
+                "content": base64.b64encode(content.encode("utf-8")).decode("ascii"),
+            },
+            timeout=15.0,
+        )
+        if r.status_code not in (200, 201):
+            raise ValueError(f"GitHub contents API failed: {r.status_code} {r.text[:200]}")
+        data = r.json()
+        return {"sha": data.get("commit", {}).get("sha", "")}

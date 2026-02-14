@@ -1,320 +1,87 @@
-/** Main application logic */
-const App = {
-    currentUser: null,
-    currentTab: 'family',
-    
-    init() {
-        // #region agent log
-        App.addDebugLog('INFO', 'App.init: starting', {hasFamily: typeof Family !== 'undefined', hasPersonal: typeof Personal !== 'undefined', hasBaby: typeof Baby !== 'undefined'});
-        // #endregion
-        
-        // Initialize Telegram WebApp
-        if (window.Telegram?.WebApp) {
-            window.Telegram.WebApp.ready();
-            window.Telegram.WebApp.expand();
-            
-            // Set theme colors
-            window.Telegram.WebApp.setHeaderColor('#fb923c');
-            window.Telegram.WebApp.setBackgroundColor('#fff7ed');
-        }
-        
-        // Setup tab navigation
-        this.setupTabs();
-        
-        // Load initial data
-        this.loadUserData();
-        
-        // Setup event listeners
-        this.setupEventListeners();
-        
-        // #region agent log
-        App.addDebugLog('INFO', 'App.init: completed');
-        // #endregion
-    },
-    
-    setupTabs() {
-        const tabButtons = document.querySelectorAll('.tab-btn');
-        tabButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const tab = btn.dataset.tab;
-                this.switchTab(tab);
-            });
-        });
-    },
-    
-    switchTab(tabName) {
-        // #region agent log
-        const logData = {location:'app.js:37',message:'switchTab called',data:{tabName,hasFamily:typeof Family!=='undefined',hasPersonal:typeof Personal!=='undefined',hasBaby:typeof Baby!=='undefined'},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
-        console.log('[DEBUG]', logData);
-        App.addDebugLog('INFO', `switchTab: ${tabName}`, {hasFamily: typeof Family !== 'undefined', hasPersonal: typeof Personal !== 'undefined', hasBaby: typeof Baby !== 'undefined'});
-        // #endregion
-        
-        // Update buttons
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.tab === tabName);
-        });
-        
-        // Update content: show active tab with block, hide others with hidden
-        document.querySelectorAll('.tab-content').forEach(content => {
-            const expectedId = `${tabName}-tab`;
-            const isActive = content.id === expectedId;
-            if (isActive) {
-                content.classList.remove('hidden');
-                content.classList.add('block');
-            } else {
-                content.classList.add('hidden');
-                content.classList.remove('block');
-            }
-            // #region agent log
-            if (isActive) {
-                App.addDebugLog('INFO', `Showing tab: ${expectedId}`, {contentId: content.id, isHidden: content.classList.contains('hidden')});
-            }
-            // #endregion
-        });
-        
-        this.currentTab = tabName;
-        
-        // Load tab-specific data
-        if (tabName === 'family') {
-            // #region agent log
-            const logData1 = {location:'app.js:51',message:'Loading family tab',data:{familyDefined:typeof Family!=='undefined'},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
-            console.log('[DEBUG]', logData1);
-            // #endregion
-            if (typeof Family !== 'undefined') {
-                // #region agent log
-                const logData2 = {location:'app.js:53',message:'Calling Family.loadFamilyPage',data:{},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
-                console.log('[DEBUG]', logData2);
-                App.addDebugLog('INFO', 'Calling Family.loadFamilyPage');
-                // #endregion
-                Family.loadFamilyPage();
-            } else {
-                // #region agent log
-                const logData3 = {location:'app.js:55',message:'Family module not defined',data:{},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
-                console.error('[DEBUG ERROR]', logData3);
-                App.addDebugLog('ERROR', 'Family module not defined!');
-                // #endregion
-            }
-        } else if (tabName === 'personal') {
-            // #region agent log
-            const logData4 = {location:'app.js:57',message:'Loading personal tab',data:{personalDefined:typeof Personal!=='undefined'},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
-            console.log('[DEBUG]', logData4);
-            // #endregion
-            if (typeof Personal !== 'undefined') {
-                // #region agent log
-                const logData5 = {location:'app.js:59',message:'Calling Personal.loadPersonalHabits',data:{},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
-                console.log('[DEBUG]', logData5);
-                App.addDebugLog('INFO', 'Calling Personal.loadPersonalHabits');
-                // #endregion
-                Personal.loadPersonalHabits();
-            } else {
-                // #region agent log
-                const logData6 = {location:'app.js:61',message:'Personal module not defined',data:{},timestamp:Date.now(),runId:'run1',hypothesisId:'A'};
-                console.error('[DEBUG ERROR]', logData6);
-                App.addDebugLog('ERROR', 'Personal module not defined!');
-                // #endregion
-            }
-        } else if (tabName === 'baby') {
-            Baby.loadEvents();
-        }
-    },
-    
-    async loadUserData() {
-        // #region agent log
-        // #endregion
-        
-        try {
-            this.showLoading();
-            
-            // Check if running in Telegram WebApp
-            const hasTelegramWebApp = !!window.Telegram?.WebApp;
-            const initData = window.Telegram?.WebApp?.initData || '';
-            
-            // #region agent log
-            // #endregion
-            
-            if (!hasTelegramWebApp || !initData) {
-                // #region agent log
-                // #endregion
-                
-                const userNameEl = document.getElementById('user-name');
-                if (userNameEl) {
-                    userNameEl.textContent = 'Откройте приложение через Telegram бота';
-                }
-                
-                // Show message in the app
-                const appContainer = document.getElementById('app');
-                if (appContainer) {
-                    appContainer.innerHTML = `
-                        <div class="flex items-center justify-center min-h-screen">
-                            <div class="bg-white rounded-xl p-6 shadow-lg max-w-md text-center">
-                                <h2 class="text-2xl font-bold text-orange-600 mb-4">⚠️ Требуется Telegram</h2>
-                                <p class="text-gray-700 mb-4">Это приложение работает только внутри Telegram.</p>
-                                <p class="text-gray-600 text-sm mb-4">Пожалуйста, откройте приложение через вашего Telegram бота.</p>
-                                <p class="text-gray-500 text-xs">Если вы используете бота, убедитесь, что Menu Button настроен правильно.</p>
-                            </div>
-                        </div>
-                    `;
-                }
-                return;
-            }
-            
-            // Verify auth
-            // #region agent log
-            // #endregion
-            
-            const authResponse = await API.verifyAuth(initData);
-            this.currentUser = authResponse.user;
-            
-            // #region agent log
-            // #endregion
-            
-            // Update UI
-            const userNameEl = document.getElementById('user-name');
-            if (userNameEl && this.currentUser) {
-                userNameEl.textContent = `Привет, ${this.currentUser.first_name || this.currentUser.username || 'Пользователь'}!`;
-            }
-            
-            await Habits.loadTodayHabits();
-            await Gamification.loadStats();
-            this.switchTab('family');
-        } catch (error) {
-            // #region agent log
-            // #endregion
-            
-            console.error('Failed to load user data:', error);
-            const errorMessage = error.message || 'Не удалось загрузить данные';
-            
-            // Check if BACKEND_URL is not configured
-            if (window.BACKEND_URL && window.BACKEND_URL.includes('your-app.railway.app')) {
-                this.showError('Ошибка: BACKEND_URL не настроен. Пожалуйста, обновите config.js с реальным URL вашего Railway бэкенда.');
-            } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
-                this.showError('Не удалось подключиться к серверу. Проверьте BACKEND_URL в config.js и убедитесь, что бэкенд запущен.');
-            } else if (errorMessage.includes('Missing Telegram init data')) {
-                const userNameEl = document.getElementById('user-name');
-                if (userNameEl) {
-                    userNameEl.textContent = 'Откройте приложение через Telegram бота';
-                }
-                this.showError('Это приложение работает только внутри Telegram. Пожалуйста, откройте его через вашего Telegram бота.');
-            } else {
-                this.showError(`Ошибка: ${errorMessage}`);
-            }
-        } finally {
-            this.hideLoading();
-        }
-    },
-    
-    setupEventListeners() {
-        // Add event modal
-        const addEventBtn = document.getElementById('add-event-btn');
-        const addEventModal = document.getElementById('add-event-modal');
-        const cancelEventBtn = document.getElementById('cancel-event-btn');
-        const addEventForm = document.getElementById('add-event-form');
-        
-        if (addEventBtn) {
-            addEventBtn.addEventListener('click', () => {
-                addEventModal.classList.remove('hidden');
-            });
-        }
-        
-        if (cancelEventBtn) {
-            cancelEventBtn.addEventListener('click', () => {
-                addEventModal.classList.add('hidden');
-                addEventForm.reset();
-            });
-        }
-        
+(function () {
+  const content = document.getElementById('content');
+  const nav = document.querySelector('.nav');
 
-        
-        // Invite member modal
-        const inviteMemberForm = document.getElementById('invite-member-form');
-        const cancelInviteBtn = document.getElementById('cancel-invite-btn');
-        
-        if (cancelInviteBtn) {
-            cancelInviteBtn.addEventListener('click', () => {
-                Gamification.closeInviteModal();
-            });
-        }
-        
-        if (inviteMemberForm) {
-            inviteMemberForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                await Gamification.inviteMember();
-            });
-        }
-        if (addEventForm) {
-            addEventForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                await Baby.handleAddEvent();
-            });
-        }
-        const familyBabyViewAll = document.getElementById('family-baby-view-all');
-        if (familyBabyViewAll) {
-            familyBabyViewAll.addEventListener('click', () => this.switchTab('baby'));
-        }
-        const familyAddHabitBtn = document.getElementById('family-add-habit-btn');
-        if (familyAddHabitBtn) {
-            familyAddHabitBtn.addEventListener('click', () => typeof Settings !== 'undefined' && Settings.openHabitModal());
-        }
-        const personalAddHabitBtn = document.getElementById('personal-add-habit-btn');
-        if (personalAddHabitBtn) {
-            personalAddHabitBtn.addEventListener('click', () => typeof Settings !== 'undefined' && Settings.openHabitModal());
-        }
-    },
-    
-    showLoading() {
-        const loading = document.getElementById('loading');
-        if (loading) loading.classList.remove('hidden');
-    },
-    
-    hideLoading() {
-        const loading = document.getElementById('loading');
-        if (loading) loading.classList.add('hidden');
-    },
-    
-    showError(message) {
-        this.addDebugLog('ERROR', message);
-        if (window.Telegram?.WebApp) {
-            window.Telegram.WebApp.showAlert(message);
-        } else {
-            alert(message);
-        }
-    },
-    
-    addDebugLog(type, message, data = null) {
-        const panel = document.getElementById('debug-log-panel');
-        const content = document.getElementById('debug-log-content');
-        if (!panel || !content) return;
-        
-        panel.style.display = 'block';
-        // Clear placeholder on first log
-        if (content.textContent.includes('Логи появятся')) {
-            content.innerHTML = '';
-        }
-        const time = new Date().toLocaleTimeString();
-        const logEntry = document.createElement('div');
-        logEntry.className = `mb-1 ${type === 'ERROR' ? 'text-red-600' : 'text-gray-700'}`;
-        logEntry.innerHTML = `<span class="font-mono">[${time}]</span> <span class="font-semibold">[${type}]</span> ${message}${data ? ` <span class="text-gray-500">${JSON.stringify(data)}</span>` : ''}`;
-        content.appendChild(logEntry);
-        content.scrollTop = content.scrollHeight;
-        
-        // Keep only last 20 logs
-        while (content.children.length > 20) {
-            content.removeChild(content.firstChild);
-        }
-    },
-    
-    showSuccess(message) {
-        if (window.Telegram?.WebApp) {
-            window.Telegram.WebApp.showAlert(message);
-        } else {
-            alert(message);
-        }
-    }
-};
+  function show(pageId) {
+    content.innerHTML = '<p class="loading">Загрузка...</p>';
+    if (pageId === 'habits') loadHabits();
+    else if (pageId === 'baby') loadBaby();
+    else if (pageId === 'gamification') loadGamification();
+    else if (pageId === 'family') loadFamily();
+    else if (pageId === 'settings') loadSettings();
+    else content.innerHTML = '<p class="page-title">Выберите раздел</p>';
+  }
 
-// Initialize app when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => App.init());
-} else {
-    App.init();
-}
+  function loadHabits() {
+    API.get('/api/habits/today')
+      .then(habits => {
+        let html = '<h2 class="page-title">Привычки на сегодня</h2>';
+        if (!habits.length) html += '<p>Нет привычек на сегодня</p>';
+        else {
+          habits.forEach(h => {
+            html += `<div class="card" data-habit-id="${h.id}"><strong>${h.name}</strong> (${h.xp_reward} XP) <button class="btn" data-complete="${h.id}">Выполнено</button></div>`;
+          });
+        }
+        content.innerHTML = html;
+        content.querySelectorAll('[data-complete]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.dataset.complete;
+            const today = new Date().toISOString().slice(0, 10);
+            API.post(`/api/habits/${id}/complete`, { date: today, value: null })
+              .then(() => loadHabits())
+              .catch(e => { content.querySelector('.error')?.remove(); btn.insertAdjacentHTML('afterend', `<p class="error">${e.message}</p>`); });
+          });
+        });
+      })
+      .catch(e => { content.innerHTML = `<p class="error">${e.message}</p>`); 
+  }
+
+  function loadBaby() {
+    API.get('/api/baby/events')
+      .then(events => {
+        let html = '<h2 class="page-title">Дневник малыша</h2>';
+        if (!events.length) html += '<p>Пока нет записей</p>';
+        else events.forEach(e => { html += `<div class="card"><small>${e.event_type}</small> ${e.content}</div>`; });
+        content.innerHTML = html;
+      })
+      .catch(e => { content.innerHTML = `<p class="error">${e.message}</p>`); 
+  }
+
+  function loadGamification() {
+    API.get('/api/gamification/stats')
+      .then(s => {
+        content.innerHTML = `
+          <h2 class="page-title">Статистика</h2>
+          <div class="card"><strong>Уровень ${s.level}</strong><br>XP: ${s.total_xp} (до следующего: ${s.xp_for_next_level})</div>
+          ${s.family_quest_progress ? `<div class="card">Квест: ${s.family_quest_progress.name} — ${s.family_quest_progress.current_xp}/${s.family_quest_progress.target_xp} XP</div>` : ''}
+        `;
+      })
+      .catch(e => { content.innerHTML = `<p class="error">${e.message}</p>`); 
+  }
+
+  function loadFamily() {
+    API.get('/api/users/family')
+      .then(members => {
+        let html = '<h2 class="page-title">Семья</h2>';
+        if (!members.length) html += '<p>Нет участников</p>';
+        else members.forEach(m => { html += `<div class="card">${m.first_name || m.username || m.telegram_id} — ур. ${m.level}</div>`; });
+        content.innerHTML = html;
+      })
+      .catch(e => { content.innerHTML = `<p class="error">${e.message}</p>`); 
+  }
+
+  function loadSettings() {
+    content.innerHTML = '<h2 class="page-title">Настройки</h2><div class="card">Backend: ' + (window.BACKEND_URL || 'не задан') + '</div>';
+  }
+
+  nav.addEventListener('click', function (e) {
+    const btn = e.target.closest('button[data-page]');
+    if (btn) show(btn.dataset.page);
+  });
+
+  if (window.Telegram?.WebApp) {
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+  }
+  show('habits');
+})();

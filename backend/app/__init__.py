@@ -1,1 +1,1 @@
-# FamilyQuest Backend Application
+"""FamilyQuest backend application."""

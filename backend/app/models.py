@@ -1,10 +1,10 @@
-"""SQLAlchemy database models."""
-from sqlalchemy import Column, String, Integer, Boolean, Date, DateTime, ForeignKey, UniqueConstraint, Enum as SQLEnum, JSON
+"""SQLAlchemy models. No raw reserved column names (e.g. use event_extra instead of metadata)."""
+import uuid
+import enum
+from sqlalchemy import Column, String, Integer, Boolean, Date, DateTime, ForeignKey, UniqueConstraint, Enum as SQLEnum
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-import uuid
-import enum
 
 from .database import Base
 
@@ -52,7 +52,6 @@ class User(Base):
     family_id = Column(UUID(as_uuid=True), ForeignKey("families.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # Relationships
     family = relationship("Family", back_populates="members")
     owned_habits = relationship("Habit", back_populates="owner", foreign_keys="Habit.owner_id")
     habit_logs = relationship("HabitLog", back_populates="user")
@@ -69,7 +68,6 @@ class Family(Base):
     total_xp = Column(Integer, default=0, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # Relationships
     members = relationship("User", back_populates="family")
     habits = relationship("Habit", back_populates="family")
     baby_events = relationship("BabyEvent", back_populates="family")
@@ -85,14 +83,13 @@ class Habit(Base):
     name = Column(String, nullable=False)
     type = Column(SQLEnum(HabitType), nullable=False)
     schedule_type = Column(SQLEnum(ScheduleType), nullable=False)
-    schedule_config = Column(JSONB, nullable=True)  # Days of week, interval, etc.
+    schedule_config = Column(JSONB, nullable=True)
     privacy = Column(SQLEnum(PrivacyType), nullable=False)
     xp_reward = Column(Integer, default=10, nullable=False)
-    target_value = Column(JSONB, nullable=True)  # Target value depends on habit type. For SHARED habits: {"user_targets": {user_id: target_value}}
+    target_value = Column(JSONB, nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # Relationships
     family = relationship("Family", back_populates="habits")
     owner = relationship("User", back_populates="owned_habits", foreign_keys=[owner_id])
     logs = relationship("HabitLog", back_populates="habit")
@@ -106,17 +103,14 @@ class HabitLog(Base):
     habit_id = Column(UUID(as_uuid=True), ForeignKey("habits.id"), nullable=False)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     date = Column(Date, nullable=False)
-    value = Column(JSONB, nullable=True)  # Value depends on habit type
+    value = Column(JSONB, nullable=True)
     xp_earned = Column(Integer, default=0, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # Relationships
     habit = relationship("Habit", back_populates="logs")
     user = relationship("User", back_populates="habit_logs")
 
-    __table_args__ = (
-        UniqueConstraint("habit_id", "user_id", "date", name="unique_habit_user_date"),
-    )
+    __table_args__ = (UniqueConstraint("habit_id", "user_id", "date", name="unique_habit_user_date"),)
 
 
 class BabyEvent(Base):
@@ -126,11 +120,10 @@ class BabyEvent(Base):
     family_id = Column(UUID(as_uuid=True), ForeignKey("families.id"), nullable=False)
     event_type = Column(SQLEnum(BabyEventType), nullable=False)
     content = Column(String, nullable=False)
-    event_metadata = Column("metadata", JSONB, nullable=True)  # Additional data (product, skill details)
+    event_extra = Column(JSONB, nullable=True)  # extra data, not reserved name "metadata"
     created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # Relationships
     family = relationship("Family", back_populates="baby_events")
     created_by_user = relationship("User", back_populates="baby_events")
 
@@ -148,7 +141,6 @@ class FamilyQuest(Base):
     is_completed = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # Relationships
     family = relationship("Family", back_populates="quests")
 
 
@@ -162,10 +154,7 @@ class Streak(Base):
     longest_streak = Column(Integer, default=0, nullable=False)
     last_completed_date = Column(Date, nullable=True)
 
-    # Relationships
     habit = relationship("Habit", back_populates="streaks")
     user = relationship("User", back_populates="streaks")
 
-    __table_args__ = (
-        UniqueConstraint("habit_id", "user_id", name="unique_habit_user_streak"),
-    )
+    __table_args__ = (UniqueConstraint("habit_id", "user_id", name="unique_habit_user_streak"),)

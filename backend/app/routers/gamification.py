@@ -1,15 +1,16 @@
-"""Gamification endpoints."""
+"""Gamification: stats, family quest, leaderboard."""
+from datetime import date
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
-from datetime import date, timedelta
-from uuid import UUID
+from sqlalchemy import func
 
 from ..database import get_db
-from ..models import User, FamilyQuest, Family
-from ..schemas import FamilyQuestCreate, FamilyQuestResponse, StatsResponse, LeaderboardEntry, FamilyStatsResponse
+from ..models import User, Family, FamilyQuest, HabitLog
+from ..schemas import FamilyQuestCreate, FamilyQuestResponse, FamilyStatsResponse, StatsResponse, LeaderboardEntry
 from ..routers.users import get_current_user
-from ..services.xp_service import get_user_stats, get_family_stats
+from ..services.xp_service import get_user_stats, get_family_stats, calculate_xp_for_next_level
+from ..telegram.bot import notify_family_quest_completed
 
 router = APIRouter(prefix="/api/gamification", tags=["gamification"])
 
@@ -17,134 +18,109 @@ router = APIRouter(prefix="/api/gamification", tags=["gamification"])
 @router.get("/stats", response_model=StatsResponse)
 async def get_stats(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    """Get current user's gamification stats."""
     stats = get_user_stats(current_user, db)
-    
-    # Get active family quest
-    family_quest = None
-    if current_user.family_id:
-        family_quest = db.query(FamilyQuest).filter(
+    quest = (
+        db.query(FamilyQuest)
+        .filter(
             FamilyQuest.family_id == current_user.family_id,
             FamilyQuest.is_completed == False,
-            FamilyQuest.end_date >= date.today()
-        ).order_by(FamilyQuest.created_at.desc()).first()
-    
-    quest_progress = None
-    if family_quest:
-        quest_progress = {
-            "id": str(family_quest.id),
-            "name": family_quest.name,
-            "target_xp": family_quest.target_xp,
-            "current_xp": family_quest.current_xp,
-            "progress_percent": int((family_quest.current_xp / family_quest.target_xp) * 100) if family_quest.target_xp > 0 else 0
+            FamilyQuest.end_date >= date.today(),
+        )
+        .first()
+    )
+    family_quest_progress = None
+    if quest:
+        family_quest_progress = {
+            "id": str(quest.id),
+            "name": quest.name,
+            "target_xp": quest.target_xp,
+            "current_xp": quest.current_xp,
+            "end_date": str(quest.end_date),
         }
-    
     return StatsResponse(
         level=stats["level"],
         total_xp=stats["total_xp"],
         xp_for_next_level=stats["xp_for_next_level"],
         current_streaks=stats["current_streaks"],
-        family_quest_progress=quest_progress
+        family_quest_progress=family_quest_progress,
     )
 
 
-@router.get("/family-quest", response_model=FamilyQuestResponse)
+@router.get("/family-quest", response_model=FamilyQuestResponse | None)
 async def get_family_quest(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    """Get current active family quest. Auto-creates one if missing."""
     if not current_user.family_id:
-        raise HTTPException(status_code=400, detail="User must belong to a family")
-    
-    today = date.today()
-    quest = db.query(FamilyQuest).filter(
-        FamilyQuest.family_id == current_user.family_id,
-        FamilyQuest.is_completed == False,
-        FamilyQuest.end_date >= today
-    ).order_by(FamilyQuest.created_at.desc()).first()
-    
-    if not quest:
-        quest = FamilyQuest(
-            family_id=current_user.family_id,
-            name="Семейная неделя",
-            target_xp=500,
-            current_xp=0,
-            start_date=today,
-            end_date=today + timedelta(days=7),
-            is_completed=False,
+        return None
+    quest = (
+        db.query(FamilyQuest)
+        .filter(
+            FamilyQuest.family_id == current_user.family_id,
+            FamilyQuest.is_completed == False,
+            FamilyQuest.end_date >= date.today(),
         )
-        db.add(quest)
-        db.commit()
-        db.refresh(quest)
-    
-    return FamilyQuestResponse.model_validate(quest)
+        .first()
+    )
+    return FamilyQuestResponse.model_validate(quest) if quest else None
 
 
 @router.post("/family-quest", response_model=FamilyQuestResponse)
 async def create_family_quest(
-    quest_data: FamilyQuestCreate,
+    data: FamilyQuestCreate,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    """Create a new family quest."""
     if not current_user.family_id:
         raise HTTPException(status_code=400, detail="User must belong to a family")
-    
-    # Check if user is admin
-    from ..models import UserRole
-    if current_user.role != UserRole.ADMIN:
-        raise HTTPException(status_code=403, detail="Only admin can create family quests")
-    
     quest = FamilyQuest(
         family_id=current_user.family_id,
-        **quest_data.model_dump()
+        name=data.name,
+        target_xp=data.target_xp,
+        start_date=data.start_date,
+        end_date=data.end_date,
     )
     db.add(quest)
     db.commit()
     db.refresh(quest)
-    
     return FamilyQuestResponse.model_validate(quest)
 
 
-@router.get("/leaderboard", response_model=List[LeaderboardEntry])
+@router.get("/leaderboard", response_model=list[LeaderboardEntry])
 async def get_leaderboard(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    """Get family leaderboard."""
     if not current_user.family_id:
-        raise HTTPException(status_code=400, detail="User must belong to a family")
-    
-    family_members = db.query(User).filter(
-        User.family_id == current_user.family_id
-    ).order_by(User.total_xp.desc(), User.level.desc()).all()
-    
+        return []
+    members = (
+        db.query(User)
+        .filter(User.family_id == current_user.family_id)
+        .order_by(User.total_xp.desc())
+        .all()
+    )
     return [
         LeaderboardEntry(
-            user_id=member.id,
-            username=member.username,
-            first_name=member.first_name,
-            level=member.level,
-            total_xp=member.total_xp
+            user_id=m.id,
+            username=m.username,
+            first_name=m.first_name,
+            level=m.level,
+            total_xp=m.total_xp,
         )
-        for member in family_members
+        for m in members
     ]
 
+
 @router.get("/family-stats", response_model=FamilyStatsResponse)
-async def get_family_stats(
+async def get_family_stats_route(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    """Get family gamification stats."""
     if not current_user.family_id:
-        raise HTTPException(status_code=400, detail="User must belong to a family")
-    
+        raise HTTPException(status_code=400, detail="No family")
     family = db.query(Family).filter(Family.id == current_user.family_id).first()
     if not family:
         raise HTTPException(status_code=404, detail="Family not found")
-    
-    stats = get_family_stats(family, db)
-    return FamilyStatsResponse(**stats)
+    return FamilyStatsResponse(**get_family_stats(family, db))

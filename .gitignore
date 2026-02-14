@@ -12,7 +12,7 @@ ENV/
 dist/
 build/
 
-# Environment variables
+# Environment
 .env
 .env.local
 
@@ -35,15 +35,14 @@ logs/
 *.db
 *.sqlite
 
-# Frontend build (if using build tools)
+# Frontend
 node_modules/
 .next/
 out/
-build/
 
 # Railway
 .railway/
 
-# Temporary files
+# Temporary
 *.tmp
 *.bak
