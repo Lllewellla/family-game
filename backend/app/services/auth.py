@@ -1,8 +1,9 @@
 """Single place: verify initData + get or create user."""
+from datetime import date, timedelta
 from sqlalchemy.orm import Session
 
 from ..config import get_settings
-from ..models import User, Family, UserRole
+from ..models import User, Family, FamilyQuest, UserRole
 from ..utils.telegram_auth import verify_telegram_webapp_data, parse_telegram_user_data
 
 
@@ -43,6 +44,18 @@ def verify_and_get_user(init_data: str, db: Session) -> User:
         role=UserRole.ADMIN,
     )
     db.add(user)
+    db.flush()
+    # Стартовый квест для новой семьи, чтобы не было пусто
+    start = date.today()
+    end = start + timedelta(days=7)
+    quest = FamilyQuest(
+        family_id=family.id,
+        name="Первый квест",
+        target_xp=100,
+        start_date=start,
+        end_date=end,
+    )
+    db.add(quest)
     db.commit()
     db.refresh(user)
     return user

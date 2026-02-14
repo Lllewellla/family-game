@@ -1,5 +1,5 @@
 """Gamification: stats, family quest, leaderboard."""
-from datetime import date
+from datetime import date, timedelta
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -15,21 +15,43 @@ from ..telegram.bot import notify_family_quest_completed
 router = APIRouter(prefix="/api/gamification", tags=["gamification"])
 
 
+def _ensure_active_quest(db: Session, family_id: UUID) -> FamilyQuest | None:
+    """Если у семьи нет активного квеста — создаём стартовый."""
+    quest = (
+        db.query(FamilyQuest)
+        .filter(
+            FamilyQuest.family_id == family_id,
+            FamilyQuest.is_completed == False,
+            FamilyQuest.end_date >= date.today(),
+        )
+        .first()
+    )
+    if quest:
+        return quest
+    start = date.today()
+    end = start + timedelta(days=7)
+    new_quest = FamilyQuest(
+        family_id=family_id,
+        name="Первый квест",
+        target_xp=100,
+        start_date=start,
+        end_date=end,
+    )
+    db.add(new_quest)
+    db.commit()
+    db.refresh(new_quest)
+    return new_quest
+
+
 @router.get("/stats", response_model=StatsResponse)
 async def get_stats(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     stats = get_user_stats(current_user, db)
-    quest = (
-        db.query(FamilyQuest)
-        .filter(
-            FamilyQuest.family_id == current_user.family_id,
-            FamilyQuest.is_completed == False,
-            FamilyQuest.end_date >= date.today(),
-        )
-        .first()
-    )
+    quest = None
+    if current_user.family_id:
+        quest = _ensure_active_quest(db, current_user.family_id)
     family_quest_progress = None
     if quest:
         family_quest_progress = {
@@ -55,15 +77,7 @@ async def get_family_quest(
 ):
     if not current_user.family_id:
         return None
-    quest = (
-        db.query(FamilyQuest)
-        .filter(
-            FamilyQuest.family_id == current_user.family_id,
-            FamilyQuest.is_completed == False,
-            FamilyQuest.end_date >= date.today(),
-        )
-        .first()
-    )
+    quest = _ensure_active_quest(db, current_user.family_id)
     return FamilyQuestResponse.model_validate(quest) if quest else None
 
 
