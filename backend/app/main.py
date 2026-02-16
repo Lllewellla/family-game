@@ -1,5 +1,4 @@
-"""FastAPI application entry point. Health checks process + DB only."""
-import asyncio
+"""FastAPI application entry point. Health checks process + DB only. Bot polling not run here (conflicts with uvicorn event loop)."""
 import logging
 from contextlib import asynccontextmanager
 
@@ -57,21 +56,13 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning("Deploy notification skipped: %s", e)
 
-    bot_task = None
     try:
-        from .telegram.bot import run_bot
-        bot_task = asyncio.create_task(run_bot())
+        from .telegram.bot import setup_menu_button
+        await setup_menu_button()
     except Exception as e:
-        logger.warning("Bot not started: %s", e)
+        logger.warning("Menu button setup skipped: %s", e)
 
     yield
-
-    if bot_task and not bot_task.done():
-        bot_task.cancel()
-        try:
-            await bot_task
-        except asyncio.CancelledError:
-            pass
     logger.info("Shutting down FamilyQuest API...")
 
 

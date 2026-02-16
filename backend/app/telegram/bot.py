@@ -96,7 +96,12 @@ def create_bot_application():
 
 
 async def run_bot():
-    """Run bot polling in background. Optional: app works without bot."""
+    """
+    Run bot polling. Do NOT call from FastAPI lifespan: run_polling() uses its own
+    event loop and conflicts with uvicorn (RuntimeError: event loop already running).
+    In production we only use setup_menu_button() at startup and Bot().send_message() from API.
+    Use run_bot() only for standalone local dev: python -m asyncio with a separate process.
+    """
     app = create_bot_application()
     if not app:
         return
