@@ -1,4 +1,20 @@
 (function () {
+  // Гарантируем видимые цвета, если Telegram не подставил тему или подставил пустые значения
+  var root = document.documentElement;
+  var style = getComputedStyle(root);
+  var vars = [
+    ['--tg-theme-bg-color', '#ffffff'],
+    ['--tg-theme-text-color', '#1a1a1a'],
+    ['--tg-theme-hint-color', '#555555'],
+    ['--tg-theme-button-color', '#2481cc'],
+    ['--tg-theme-button-text-color', '#ffffff'],
+    ['--tg-theme-secondary-bg-color', '#f0f0f0']
+  ];
+  vars.forEach(function (pair) {
+    var val = style.getPropertyValue(pair[0]).trim();
+    if (!val) root.style.setProperty(pair[0], pair[1]);
+  });
+
   const content = document.getElementById('content');
   const nav = document.querySelector('.nav');
 
@@ -79,9 +95,14 @@
     if (btn) show(btn.dataset.page);
   });
 
-  if (window.Telegram?.WebApp) {
+  if (window.Telegram && window.Telegram.WebApp) {
     window.Telegram.WebApp.ready();
     window.Telegram.WebApp.expand();
+  }
+
+  if (!window.BACKEND_URL) {
+    content.innerHTML = '<p class="error">Не задан BACKEND_URL. Проверьте config.js.</p>';
+    return;
   }
   show('habits');
 })();

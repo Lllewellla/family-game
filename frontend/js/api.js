@@ -11,7 +11,11 @@ const API = {
       },
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.detail || res.statusText);
+    if (!res.ok) {
+      let msg = data.detail || res.statusText;
+      if (res.status === 401) msg = 'Откройте приложение из Telegram (бот → кнопка «Открыть Трекер»).';
+      throw new Error(msg);
+    }
     return data;
   },
   get(path) { return this.request(path, { method: 'GET' }); },
