@@ -45,6 +45,7 @@ class AuthResponse(BaseModel):
 # Habit
 class HabitBase(BaseModel):
     name: str
+    description: Optional[str] = None
     type: HabitType
     schedule_type: ScheduleType
     schedule_config: Optional[Dict[str, Any]] = None
@@ -59,11 +60,13 @@ class HabitCreate(HabitBase):
 
 class HabitUpdate(BaseModel):
     name: Optional[str] = None
+    description: Optional[str] = None
     schedule_type: Optional[ScheduleType] = None
     schedule_config: Optional[Dict[str, Any]] = None
     privacy: Optional[PrivacyType] = None
     xp_reward: Optional[int] = None
     target_value: Optional[Dict[str, Any]] = None
+    goal_effective_from: Optional[date] = None
     is_active: Optional[bool] = None
 
 
@@ -71,6 +74,7 @@ class HabitResponse(HabitBase):
     id: UUID
     family_id: UUID
     owner_id: UUID
+    goal_effective_from: Optional[date] = None
     is_active: bool
     created_at: datetime
 
@@ -103,6 +107,15 @@ class HabitLogResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class HabitStatsResponse(BaseModel):
+    current_streak: int = 0
+    longest_streak: int = 0
+    weekly_done: Optional[int] = None
+    weekly_target: Optional[int] = None
+    percent_week: Optional[float] = None
+    percent_month: Optional[float] = None
 
 
 # Baby (event_extra matches model column)

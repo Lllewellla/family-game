@@ -16,14 +16,16 @@ class UserRole(str, enum.Enum):
 
 class HabitType(str, enum.Enum):
     BOOLEAN = "boolean"
-    SCALE = "scale"
+    TIMES_PER_WEEK = "times_per_week"
     QUANTITY = "quantity"
+    SCALE = "scale"
     CHECKLIST = "checklist"
 
 
 class ScheduleType(str, enum.Enum):
     DAILY = "daily"
     WEEKLY = "weekly"
+    WEEKLY_TARGET = "weekly_target"
     CUSTOM = "custom"
 
 
@@ -81,12 +83,14 @@ class Habit(Base):
     family_id = Column(UUID(as_uuid=True), ForeignKey("families.id"), nullable=False)
     owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
     type = Column(SQLEnum(HabitType), nullable=False)
     schedule_type = Column(SQLEnum(ScheduleType), nullable=False)
     schedule_config = Column(JSONB, nullable=True)
     privacy = Column(SQLEnum(PrivacyType), nullable=False)
     xp_reward = Column(Integer, default=10, nullable=False)
     target_value = Column(JSONB, nullable=True)
+    goal_effective_from = Column(Date, nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
