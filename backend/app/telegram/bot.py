@@ -1,4 +1,5 @@
 """Telegram bot: /start, menu button, notifications. Uses config, no os.getenv in handlers."""
+import asyncio
 import logging
 from sqlalchemy.orm import Session
 
@@ -97,11 +98,17 @@ def create_bot_application():
 
 async def run_bot():
     """
-    Run bot polling. Do NOT call from FastAPI lifespan: run_polling() uses its own
-    event loop and conflicts with uvicorn (RuntimeError: event loop already running).
+    Run bot polling. Do NOT call from FastAPI lifespan: run_polling() conflicts with uvicorn.
     In production we only use setup_menu_button() at startup and Bot().send_message() from API.
-    Use run_bot() only for standalone local dev: python -m asyncio with a separate process.
     """
+    # Safeguard: if we're already inside an event loop (e.g. uvicorn), run_polling() would crash.
+    # Return immediately so old deployments that still call create_task(run_bot()) don't break.
+    try:
+        asyncio.get_running_loop()
+        logger.info("run_bot() skipped: already inside event loop (uvicorn). Menu button set at startup.")
+        return
+    except RuntimeError:
+        pass
     app = create_bot_application()
     if not app:
         return
