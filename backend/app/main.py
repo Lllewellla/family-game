@@ -12,6 +12,25 @@ from .config import get_settings
 from . import models  # noqa: F401 - register models with Base
 from .routers import users, habits, baby, gamification, export
 
+
+def _run_habit_migration():
+    """Add description, goal_effective_from and new enum values if not present (e.g. after deploy)."""
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE habits ADD COLUMN IF NOT EXISTS description TEXT"))
+        conn.execute(text("ALTER TABLE habits ADD COLUMN IF NOT EXISTS goal_effective_from DATE"))
+        conn.commit()
+    with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+        for stmt in (
+            "ALTER TYPE habittype ADD VALUE 'times_per_week'",
+            "ALTER TYPE scheduletype ADD VALUE 'weekly_target'",
+        ):
+            try:
+                conn.execute(text(stmt))
+            except Exception as e:
+                if "already exists" not in str(e).lower():
+                    raise
+                logging.getLogger(__name__).debug("Enum value already exists: %s", e)
+
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO,
@@ -42,6 +61,12 @@ async def lifespan(app: FastAPI):
         logger.info("Database tables created/verified")
     except Exception as e:
         logger.error("Create tables failed: %s", e)
+        raise
+    try:
+        _run_habit_migration()
+        logger.info("Habit migration applied (description, goal_effective_from, enum values)")
+    except Exception as e:
+        logger.error("Habit migration failed: %s", e)
         raise
 
     try:
